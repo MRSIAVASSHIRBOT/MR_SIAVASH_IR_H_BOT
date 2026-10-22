@@ -1,0 +1,1181 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#3d5afe">
+<title>چت‌بازی</title>
+<style>
+  :root {
+    --bg:#eef1fb; --card:#fff; --ink:#1b1f3b; --muted:#6b7194; --line:#dde2f5;
+    --blue:#3d5afe; --blue-soft:#e4e9ff; --pink:#ff4d8d; --pink-soft:#ffe3ee; --mint:#12b886; --gold:#ffc233;
+    --shadow:0 6px 20px rgba(40,55,140,.10);
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg:#12142a; --card:#1e2142; --ink:#eef0ff; --muted:#9aa0cc; --line:#2e3260;
+      --blue:#6f86ff; --blue-soft:#272c63; --pink:#ff6fa3; --pink-soft:#4a2440; --mint:#3ddc9f; --gold:#ffd25e;
+      --shadow:0 6px 20px rgba(0,0,0,.35);
+      color-scheme: dark;
+    }
+  }
+  * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+  html, body { height:100%; }
+  body { background:var(--bg); color:var(--ink); font-family:Vazirmatn,Tahoma,"Segoe UI",system-ui,sans-serif; font-size:16px; line-height:1.6; }
+  button { font:inherit; color:inherit; cursor:pointer; border:0; background:none; }
+  button:disabled { cursor:default; }
+  input { font:inherit; color:inherit; }
+  :focus-visible { outline:3px solid var(--blue); outline-offset:2px; }
+  .app { max-width:560px; height:100dvh; margin:0 auto; position:relative; overflow:hidden; display:flex; flex-direction:column; background:var(--bg); }
+  @media (min-width:600px) { .app { box-shadow:0 0 60px rgba(40,55,140,.18); } }
+
+  /* ---------- landing ---------- */
+  .landing { flex:1; overflow-y:auto; display:flex; flex-direction:column; justify-content:center; padding:26px 22px; gap:16px; }
+  .landing.off, .room.off { display:none; }
+  .tiles { display:grid; grid-template-columns:repeat(4,46px); gap:6px; width:max-content; }
+  .tiles span { height:46px; border-radius:13px; display:grid; place-items:center; font-weight:900; font-size:22px; color:#fff; box-shadow:var(--shadow); }
+  .landing h1 { font-size:36px; line-height:1.2; font-weight:900; }
+  .landing p { color:var(--muted); }
+  .field { display:flex; flex-direction:column; gap:6px; }
+  .field label { font-size:14px; color:var(--muted); }
+  .field input { background:var(--card); border:2px solid var(--line); border-radius:14px; padding:13px 14px; width:100%; }
+  .field input:focus { border-color:var(--blue); outline:none; }
+  .btn-main { background:var(--blue); color:#fff; font-weight:800; padding:14px; border-radius:14px; box-shadow:var(--shadow); width:100%; }
+  .btn-main.alt { background:var(--card); color:var(--ink); }
+  .btn-main:active { transform:scale(.98); }
+  .btn-main:disabled { opacity:.55; }
+  .invited { background:var(--pink-soft); color:var(--pink); font-weight:800; padding:10px 14px; border-radius:14px; display:none; }
+  .or { text-align:center; color:var(--muted); font-size:14px; }
+  .note { font-size:13px; color:var(--muted); background:var(--card); border-radius:12px; padding:10px 12px; }
+
+  /* ---------- room ---------- */
+  .room { flex:1; display:flex; flex-direction:column; min-height:0; }
+  .top { display:flex; align-items:center; gap:10px; padding:10px 14px; padding-top:calc(10px + env(safe-area-inset-top)); background:var(--card); box-shadow:0 2px 12px rgba(40,55,140,.08); z-index:3; }
+  .avatar { width:42px; height:42px; border-radius:14px; background:var(--blue); color:#fff; display:grid; place-items:center; font-weight:900; font-size:15px; flex:none; direction:ltr; }
+  .top .info { flex:1; min-width:0; }
+  .top .rt { font-weight:800; line-height:1.3; }
+  .members { display:flex; gap:4px; overflow:hidden; margin-top:2px; }
+  .mem { font-size:12px; padding:1px 8px; border-radius:999px; color:#fff; white-space:nowrap; }
+  .invite-btn { background:var(--pink); color:#fff; font-weight:800; padding:9px 14px; border-radius:13px; font-size:14px; box-shadow:var(--shadow); }
+  .panes { flex:1; min-height:0; position:relative; }
+  .pane { position:absolute; inset:0; display:none; flex-direction:column; min-height:0; }
+  .pane.on { display:flex; }
+  .tabs { display:flex; background:var(--card); padding:6px 10px calc(6px + env(safe-area-inset-bottom)); gap:8px; box-shadow:0 -2px 12px rgba(40,55,140,.08); }
+  .tab { flex:1; padding:9px; border-radius:14px; font-weight:800; position:relative; color:var(--muted); }
+  .tab.on { background:var(--blue-soft); color:var(--blue); }
+  .tab i { position:absolute; top:6px; inset-inline-end:22%; width:11px; height:11px; border-radius:50%; background:var(--mint); display:none; }
+  .tab i.on { display:block; }
+
+  /* chat */
+  .msgs { flex:1; overflow-y:auto; padding:14px 12px; display:flex; flex-direction:column; gap:6px; overscroll-behavior:contain; }
+  .empty { margin:auto; text-align:center; color:var(--muted); padding:20px; }
+  .empty b { display:block; color:var(--ink); font-size:18px; margin-bottom:4px; }
+  .msg { max-width:82%; display:flex; flex-direction:column; gap:2px; }
+  .msg.me { align-self:flex-start; } .msg.other { align-self:flex-end; }
+  .msg .who { font-size:12px; padding:0 6px; font-weight:700; }
+  .bubble { padding:9px 13px; border-radius:18px; word-break:break-word; white-space:pre-wrap; background:var(--card); box-shadow:var(--shadow); }
+  .me .bubble { background:var(--blue); color:#fff; border-end-start-radius:6px; }
+  .other .bubble { border-end-end-radius:6px; }
+  .msg .time { font-size:11px; color:var(--muted); padding:0 6px; }
+  .sys { align-self:center; background:var(--pink-soft); color:var(--pink); font-size:13px; font-weight:700; padding:5px 14px; border-radius:999px; margin:4px 0; text-align:center; }
+  .composer { display:flex; gap:8px; padding:10px 12px; background:var(--card); }
+  .composer input { flex:1; background:var(--bg); border:2px solid transparent; border-radius:16px; padding:11px 14px; min-width:0; }
+  .composer input:focus { border-color:var(--blue); outline:none; }
+  .send { width:48px; border-radius:16px; background:var(--blue); color:#fff; display:grid; place-items:center; }
+  .send svg { transform:scaleX(-1); }
+
+  /* games shell */
+  .gscroll { flex:1; overflow-y:auto; padding:14px 14px 22px; overscroll-behavior:contain; }
+  .gh2 { font-size:22px; font-weight:900; }
+  .ghint { color:var(--muted); font-size:14px; margin-bottom:14px; }
+  .grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .tile { background:var(--gc,var(--blue)); color:#fff; border-radius:22px; padding:16px 12px; text-align:center; display:flex; flex-direction:column; gap:2px; align-items:center; box-shadow:var(--shadow); min-height:122px; justify-content:center; }
+  .tile:active { transform:scale(.96); }
+  .tile .ti { font-size:34px; line-height:1.15; }
+  .tile b { font-weight:900; font-size:17px; }
+  .tile small { font-size:12px; opacity:.9; }
+  .ghead { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; gap:8px; }
+  .gtitle { display:flex; align-items:center; gap:8px; font-size:20px; font-weight:900; }
+  .gtitle span { width:40px; height:40px; border-radius:13px; background:var(--gc); display:grid; place-items:center; font-size:22px; }
+  .link { color:var(--blue); font-size:14px; font-weight:800; padding:6px 4px; }
+  .prow { display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap; }
+  .pl { flex:1; min-width:96px; background:var(--card); border-radius:16px; padding:7px 10px; display:flex; align-items:center; gap:8px; border:2px solid transparent; }
+  .pl.turn { border-color:var(--mint); }
+  .pl.gone { opacity:.45; }
+  .pl .sym { font-weight:900; font-size:21px; width:26px; text-align:center; }
+  .pl .nm { font-size:14px; font-weight:800; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .pl .pt { margin-inline-start:auto; font-weight:900; color:var(--muted); font-size:14px; }
+  .status { text-align:center; font-weight:800; margin-bottom:12px; min-height:28px; }
+  .status.good { color:var(--mint); }
+  .chips { display:flex; flex-wrap:wrap; gap:8px; margin:10px 0 14px; }
+  .chip { background:var(--card); border-radius:999px; padding:5px 14px; font-weight:800; box-shadow:var(--shadow); }
+  .btn-sm { background:var(--blue); color:#fff; font-weight:800; padding:11px 22px; border-radius:14px; }
+  .btn-sm.alt { background:var(--card); color:var(--ink); box-shadow:var(--shadow); }
+  .btn-sm.pink { background:var(--pink); } .btn-sm.mint { background:var(--mint); color:#06281d; }
+  .btn-sm:disabled { opacity:.5; }
+  .btn-row { display:flex; gap:8px; justify-content:center; flex-wrap:wrap; }
+  .over { background:var(--card); border-radius:20px; padding:14px; text-align:center; margin-top:14px; box-shadow:var(--shadow); display:flex; flex-direction:column; gap:10px; }
+  .over .ot { font-size:22px; font-weight:900; }
+  .over .on { color:var(--muted); font-size:14px; }
+
+  .b3 { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; max-width:320px; margin:0 auto; direction:ltr; }
+  .cell { aspect-ratio:1; border-radius:18px; background:var(--card); box-shadow:var(--shadow); font-size:46px; font-weight:900; display:grid; place-items:center; line-height:1; }
+  .cell.x { color:var(--blue); } .cell.o { color:var(--pink); }
+  .cell.win { background:var(--blue-soft); outline:3px solid var(--mint); }
+  .cell:not(:disabled):active { transform:scale(.94); }
+
+  .c4 { display:grid; grid-template-columns:repeat(7,1fr); gap:5px; direction:ltr; background:var(--blue); padding:8px; border-radius:18px; box-shadow:var(--shadow); max-width:380px; margin:0 auto; }
+  .col { display:flex; flex-direction:column; gap:5px; border-radius:10px; padding:0; }
+  .col:not(:disabled):active { background:rgba(255,255,255,.18); }
+  .coin { aspect-ratio:1; border-radius:50%; background:rgba(255,255,255,.2); display:block; width:100%; }
+  .coin.p1 { background:var(--pink); } .coin.p2 { background:var(--gold); }
+  .coin.win { outline:3px solid #fff; }
+  .dot1,.dot2 { display:inline-block; width:14px; height:14px; border-radius:50%; }
+  .dot1 { background:var(--pink); } .dot2 { background:var(--gold); }
+
+  .rps-row { display:flex; gap:10px; justify-content:center; margin-bottom:12px; }
+  .rps-btn { flex:1; max-width:104px; background:var(--card); border-radius:20px; padding:14px 4px; font-size:38px; box-shadow:var(--shadow); line-height:1.1; }
+  .rps-btn:active { transform:scale(.94); }
+  .reveal { display:flex; justify-content:center; gap:14px; margin-bottom:12px; }
+  .rv { background:var(--card); border-radius:20px; padding:12px 16px; text-align:center; min-width:110px; box-shadow:var(--shadow); }
+  .rv .big { font-size:48px; line-height:1.2; } .rv .nm { font-size:13px; color:var(--muted); }
+  .rv.w { outline:3px solid var(--mint); }
+
+  .gform { display:flex; gap:8px; margin:10px 0; }
+  .gform input { flex:1; min-width:0; background:var(--card); border:2px solid var(--line); border-radius:14px; padding:11px 14px; text-align:center; font-size:18px; font-weight:800; }
+  .gform input:focus { border-color:var(--blue); outline:none; }
+  .range { text-align:center; font-size:18px; font-weight:900; margin:4px 0 10px; }
+  .log { display:flex; flex-direction:column; gap:6px; margin-top:8px; }
+  .log div { background:var(--card); border-radius:12px; padding:6px 12px; font-size:14px; display:flex; justify-content:space-between; gap:8px; }
+
+  .mem4 { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; max-width:340px; margin:0 auto; }
+  .mc { aspect-ratio:1; border-radius:16px; background:var(--gc); color:#fff; font-size:32px; display:grid; place-items:center; box-shadow:var(--shadow); }
+  .mc.up { background:var(--card); color:inherit; outline:3px solid var(--gc); }
+  .mc.done { background:var(--card); color:inherit; opacity:.55; }
+  .mc:not(:disabled):active { transform:scale(.94); }
+
+  .pad { width:100%; border-radius:26px; min-height:200px; display:grid; place-items:center; text-align:center; font-weight:900; font-size:26px; color:#fff; padding:16px; box-shadow:var(--shadow); user-select:none; touch-action:manipulation; }
+  .pad.wait { background:#e03131; } .pad.go { background:var(--mint); color:#06281d; } .pad.res { background:var(--card); color:var(--ink); font-size:16px; }
+  .pad.tapbtn { background:var(--gc); min-height:180px; font-size:34px; }
+  .pad.tapbtn:active { transform:scale(.98); }
+  .pad small { display:block; font-size:15px; font-weight:700; opacity:.9; }
+  .big-n { font-size:56px; line-height:1.1; }
+  .tbars { display:flex; flex-direction:column; gap:7px; margin-top:12px; }
+  .tb { background:var(--card); border-radius:12px; overflow:hidden; position:relative; height:34px; }
+  .tb i { position:absolute; inset-block:0; inset-inline-start:0; background:var(--gc); opacity:.28; width:0; transition:width .25s; }
+  .tb span { position:relative; display:flex; justify-content:space-between; padding:5px 12px; font-weight:800; font-size:14px; }
+  .rtab { width:100%; margin-top:6px; display:flex; flex-direction:column; gap:6px; text-align:start; }
+  .rtab div { display:flex; justify-content:space-between; background:var(--bg); border-radius:10px; padding:4px 12px; font-size:15px; font-weight:700; }
+  .rtab div.w { outline:2px solid var(--mint); }
+
+  .qbox { background:var(--card); border-radius:20px; padding:16px; font-weight:900; font-size:19px; text-align:center; box-shadow:var(--shadow); margin-bottom:12px; }
+  .qinfo { display:flex; justify-content:space-between; font-weight:800; color:var(--muted); font-size:14px; margin-bottom:6px; }
+  .bar { height:8px; border-radius:6px; background:var(--line); overflow:hidden; margin-bottom:12px; }
+  .bar i { display:block; height:100%; width:100%; background:var(--gc); transition:width .25s linear; }
+  .opts { display:grid; gap:8px; }
+  .opt { background:var(--card); border-radius:16px; padding:13px 14px; font-weight:800; box-shadow:var(--shadow); text-align:start; border:2px solid transparent; }
+  .opt:not(:disabled):active { transform:scale(.98); }
+  .opt.sel { border-color:var(--blue); background:var(--blue-soft); }
+  .opt.ok { border-color:var(--mint); background:var(--mint); color:#06281d; }
+  .opt.bad { border-color:var(--pink); background:var(--pink-soft); }
+
+  .draw-top { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:8px; font-weight:900; }
+  .word { font-size:20px; letter-spacing:3px; }
+  .tmr { background:var(--card); border-radius:999px; padding:2px 12px; font-weight:900; min-width:48px; text-align:center; direction:ltr; display:inline-block; }
+  .cvwrap { background:#fff; border-radius:18px; overflow:hidden; box-shadow:var(--shadow); touch-action:none; line-height:0; }
+  .cvwrap canvas { width:100%; height:auto; display:block; touch-action:none; cursor:crosshair; }
+  .tools { display:flex; gap:6px; align-items:center; flex-wrap:wrap; margin:8px 0; }
+  .sw { width:30px; height:30px; border-radius:50%; border:3px solid var(--card); box-shadow:0 0 0 2px var(--line); }
+  .sw.on { box-shadow:0 0 0 3px var(--ink); }
+  .feed { display:flex; flex-direction:column; gap:4px; margin-top:8px; font-size:14px; }
+  .feed div { background:var(--card); border-radius:10px; padding:4px 12px; }
+  .feed .ok { background:var(--mint); color:#06281d; font-weight:800; }
+
+  .spin { background:var(--card); border-radius:26px; padding:22px 14px; text-align:center; box-shadow:var(--shadow); margin-bottom:14px; }
+  .spin .big { font-size:30px; font-weight:900; min-height:48px; }
+  .spin .sub { color:var(--muted); font-size:14px; }
+  .card2 { background:var(--gc); color:#fff; border-radius:22px; padding:20px 16px; text-align:center; font-weight:800; font-size:19px; box-shadow:var(--shadow); margin-bottom:12px; }
+  .card2 small { display:block; font-size:13px; opacity:.9; margin-bottom:6px; }
+
+  .sheet { position:absolute; inset:0; z-index:8; background:rgba(10,12,40,.5); display:none; align-items:flex-end; }
+  .sheet.on { display:flex; }
+  .sheet .box { width:100%; background:var(--bg); border-radius:26px 26px 0 0; padding:18px 18px calc(22px + env(safe-area-inset-bottom)); display:flex; flex-direction:column; gap:12px; }
+  .code { text-align:center; font-size:38px; font-weight:900; letter-spacing:6px; direction:ltr; color:var(--blue); }
+  .linkbox { background:var(--card); border:2px dashed var(--line); border-radius:14px; padding:10px 12px; font-size:13px; direction:ltr; word-break:break-all; color:var(--muted); }
+
+  .toast { position:absolute; top:84px; left:50%; transform:translateX(-50%); z-index:20; background:var(--ink); color:var(--bg); padding:8px 16px; border-radius:999px; font-size:14px; opacity:0; pointer-events:none; transition:opacity .2s; max-width:90%; text-align:center; }
+  .toast.on { opacity:1; }
+  @media (prefers-reduced-motion: reduce) { .tb i, .bar i, .toast { transition:none; } }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ورود -->
+  <section class="landing" id="landing">
+    <div class="tiles" aria-hidden="true">
+      <span style="background:#3d5afe">X</span><span style="background:#ff4d8d">O</span><span style="background:#12b886">✊</span><span style="background:#ff922b">🎨</span>
+    </div>
+    <h1>چت‌بازی</h1>
+    <p>با دوستت چت کن و وسط گفتگو بازی کنید. ۱۰ بازی مختلف آماده‌ست.</p>
+    <div class="invited" id="invited"></div>
+    <div class="field">
+      <label for="inName">اسم تو</label>
+      <input id="inName" maxlength="14" autocomplete="off" placeholder="مثلاً سیاوش">
+    </div>
+    <button class="btn-main" id="btnCreate">ساخت اتاق جدید</button>
+    <div class="or">یا</div>
+    <div class="field">
+      <label for="inCode">کد اتاق (یا لینک دعوت)</label>
+      <input id="inCode" autocomplete="off" placeholder="مثلاً k7m2x" dir="ltr" style="text-align:center">
+    </div>
+    <button class="btn-main alt" id="btnJoin">ورود به اتاق</button>
+    <div class="note">اتفاقی که می‌افته: تو اتاق رو می‌سازی، لینک دعوت رو برای دوستت می‌فرستی، اون هم با یه کلیک وارد می‌شه. نیازی به ثبت‌نام نیست.</div>
+  </section>
+
+  <!-- اتاق -->
+  <section class="room off" id="room">
+    <header class="top">
+      <div class="avatar" id="avatar">…</div>
+      <div class="info">
+        <div class="rt">اتاق <span id="rcode"></span></div>
+        <div class="members" id="members"></div>
+      </div>
+      <button class="invite-btn" id="btnInvite">دعوت</button>
+    </header>
+    <div class="panes">
+      <div class="pane on" id="paneChat">
+        <div class="msgs" id="msgs" aria-live="polite"></div>
+        <form class="composer" id="composer" autocomplete="off">
+          <input id="txt" maxlength="500" placeholder="یه پیام بنویس…" aria-label="متن پیام">
+          <button class="send" type="submit" aria-label="ارسال"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M2.5 20.5 22 12 2.5 3.5l.01 6.6L16 12 2.51 13.9z"/></svg></button>
+        </form>
+      </div>
+      <div class="pane" id="paneGames"><div class="gscroll" id="gameBody"></div></div>
+    </div>
+    <nav class="tabs">
+      <button class="tab on" data-tab="chat">💬 گفتگو<i id="dotChat"></i></button>
+      <button class="tab" data-tab="games">🎮 بازی‌ها<i id="dotGames"></i></button>
+    </nav>
+    <div class="sheet" id="sheet">
+      <div class="box">
+        <div style="font-weight:900;font-size:19px">دوستت رو دعوت کن</div>
+        <div class="code" id="bigCode"></div>
+        <div class="linkbox" id="linkBox"></div>
+        <button class="btn-main" id="btnCopy">کپی لینک دعوت</button>
+        <button class="btn-main alt" id="btnShare">ارسال با برنامه‌های گوشی</button>
+        <button class="link" id="btnCloseSheet">بستن</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="toast" id="toast"></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js"></script>
+<script>
+(() => {
+/*LOGIC_START*/
+const rnd = n => Math.floor(Math.random() * n);
+const pick = a => a[rnd(a.length)];
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = rnd(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const norm = s => String(s).replace(/ي/g, 'ی').replace(/ك/g, 'ک').replace(/[\u200c\s]/g, '').replace(/[\u064B-\u0652]/g, '').toLowerCase();
+const LINES3 = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+const maxOf = o => Math.max(...Object.values(o));
+
+function finish(g, winners, note) {
+  g.phase = 'over'; g.winners = winners; g.note = note || '';
+  g.score = g.score || {};
+  winners.forEach(w => { g.score[w] = (g.score[w] || 0) + 1; });
+}
+function nextTurn(g) {
+  for (let k = 1; k <= g.players.length; k++) {
+    const i = (g.turn + k) % g.players.length;
+    if (!g.gone.includes(g.players[i])) { g.turn = i; return; }
+  }
+}
+const activeOf = g => g.players.filter(p => !g.gone.includes(p));
+const rpsWin = (a, b) => a === b ? 0 : ((a === 'r' && b === 's') || (a === 's' && b === 'p') || (a === 'p' && b === 'r')) ? 1 : 2;
+function c4win(b, r, c, v) {
+  for (const [dr, dc] of [[0,1],[1,0],[1,1],[1,-1]]) {
+    const cells = [r * 7 + c];
+    for (const s of [1, -1]) {
+      let rr = r + dr * s, cc = c + dc * s;
+      while (rr >= 0 && rr < 6 && cc >= 0 && cc < 7 && b[rr * 7 + cc] === v) { cells.push(rr * 7 + cc); rr += dr * s; cc += dc * s; }
+    }
+    if (cells.length >= 4) return cells;
+  }
+  return null;
+}
+
+const QZ = [
+  ['بزرگ‌ترین سیارهٔ منظومهٔ شمسی کدومه؟','مشتری','زحل','زمین','نپتون'],
+  ['به کدوم سیاره «سیارهٔ سرخ» می‌گن؟','مریخ','زهره','تیر','اورانوس'],
+  ['بلندترین قلهٔ ایران کدومه؟','دماوند','علم‌کوه','سبلان','زردکوه'],
+  ['بزرگ‌ترین اقیانوس جهان کدومه؟','آرام','اطلس','هند','منجمد شمالی'],
+  ['شاهنامه رو کی سروده؟','فردوسی','سعدی','حافظ','مولوی'],
+  ['گلستان و بوستان اثر کیه؟','سعدی','حافظ','نظامی','خیام'],
+  ['نماد شیمیایی طلا چیه؟','Au','Ag','Fe','Go'],
+  ['فرمول شیمیایی آب کدومه؟','H₂O','CO₂','O₂','NaCl'],
+  ['عنکبوت چندتا پا داره؟','۸','۶','۱۰','۴'],
+  ['بزرگ‌ترین جانور روی زمین کدومه؟','نهنگ آبی','فیل آفریقایی','کوسهٔ سفید','زرافه'],
+  ['سریع‌ترین جانور خشکی چیه؟','یوزپلنگ','شیر','اسب','آهو'],
+  ['مخترع تلفن کیه؟','گراهام بل','ادیسون','نیکولا تسلا','مارکونی'],
+  ['پایتخت ژاپن کدوم شهره؟','توکیو','کیوتو','اوساکا','سئول'],
+  ['پایتخت استرالیا کدوم شهره؟','کانبرا','سیدنی','ملبورن','پرث'],
+  ['از نظر مساحت بزرگ‌ترین کشور جهان کدومه؟','روسیه','کانادا','چین','آمریکا'],
+  ['طولانی‌ترین رود ایران کدومه؟','کارون','زاینده‌رود','کرخه','سفیدرود'],
+  ['بزرگ‌ترین دریاچهٔ ایران کدومه؟','ارومیه','بختگان','هامون','طشک'],
+  ['رنگین‌کمان چند رنگ داره؟','۷','۵','۶','۸'],
+  ['جام جهانی ۲۰۲۲ رو کدوم تیم برد؟','آرژانتین','فرانسه','برزیل','کرواسی'],
+  ['نزدیک‌ترین سیاره به خورشید کدومه؟','تیر','زهره','زمین','مریخ'],
+  ['کدوم فلز تو دمای اتاق مایعه؟','جیوه','آهن','مس','آلومینیوم'],
+  ['مجسمهٔ آزادی تو کدوم شهره؟','نیویورک','واشنگتن','بوستون','شیکاگو'],
+  ['اهرام ثلاثه تو کدوم کشورن؟','مصر','مکزیک','پرو','سودان'],
+  ['زبان رسمی برزیل چیه؟','پرتغالی','اسپانیایی','انگلیسی','فرانسوی'],
+  ['بدن انسان بالغ چندتا استخوان داره؟','۲۰۶','۱۰۸','۳۰۶','۱۵۰'],
+  ['کدوم عدد اوله؟','۱۷','۱۵','۲۱','۲۷'],
+  ['۷ × ۸ = ؟','۵۶','۴۸','۵۴','۶۳'],
+  ['اولین انسانی که پا روی ماه گذاشت کیه؟','نیل آرمسترانگ','یوری گاگارین','باز آلدرین','جان گلن'],
+  ['آرامگاه حافظ تو کدوم شهره؟','شیراز','اصفهان','مشهد','تبریز'],
+  ['کدوم سیاره حلقه‌های معروف داره؟','زحل','مریخ','تیر','زهره'],
+  ['پایتخت کانادا کدومه؟','اتاوا','تورنتو','ونکوور','مونترال'],
+  ['گاز لازم برای نفس کشیدن ما چیه؟','اکسیژن','نیتروژن','هیدروژن','هلیوم'],
+  ['تخت جمشید تو کدوم استانه؟','فارس','خوزستان','اصفهان','یزد']
+];
+const WORDS = ['خانه','ماشین','درخت','گربه','ماهی','خورشید','گل','هواپیما','موز','کتاب','عینک','موشک','پروانه','دوچرخه','ساعت','کلاه','قلب','ستاره','ماه','کوه','قایق','چتر','پیتزا','سیب','کفش','تلفن','گیتار','کلید','مار','فیل','بستنی','برف','تاج','جارو','لامپ','پل','قلعه','ربات','دایناسور','بادکنک','کیک','مداد','پنجره','میز'];
+const TRUTH = [
+  'آخرین دروغی که گفتی چی بود؟','بامزه‌ترین اتفاقی که تو مدرسه یا دانشگاه برات افتاده چیه؟','اگه یه روز نامرئی بودی چیکار می‌کردی؟',
+  'ترسناک‌ترین چیزی که تا حالا دیدی چی بود؟','عجیب‌ترین غذایی که خوردی چی بوده؟','یه عادت عجیب که داری رو بگو.',
+  'اگه فقط یه اپ روی گوشیت می‌موند، کدوم؟','بزرگ‌ترین آرزوت چیه؟','چه کاری رو همیشه عقب می‌ندازی؟',
+  'خجالت‌آورترین لحظه‌ای که یادته چی بود؟','اگه یه میلیارد برنده می‌شدی، اول چی می‌خریدی؟','کدوم فیلم یا سریال رو بیشتر از بقیه دیدی؟',
+  'چه استعداد پنهونی داری؟','اگه می‌تونستی با یه آدم معروف شام بخوری، کی رو انتخاب می‌کردی؟'
+];
+const DARE = [
+  'یه جملهٔ ۱۰ کلمه‌ای بساز که همهٔ کلماتش با «ب» شروع بشه.','برای یکی از بچه‌ها یه لقب بامزه انتخاب کن و تو چت بنویس.',
+  'یه دقیقه فقط با ایموجی حرف بزن.','یه جوک بگو. اگه کسی نخندید، یه جوک دیگه!','یه بیت شعر از حفظ بنویس.',
+  'اسم ۱۰ تا میوه رو تو ۱۰ ثانیه بنویس.','سه تا واقعیت جالب دربارهٔ خودت بنویس.','یه داستان ۳ جمله‌ای دربارهٔ یه گربهٔ فضانورد بساز.',
+  'مثل مجری رادیو یه جملهٔ انگیزشی بنویس.','یه ایموجی انتخاب کن و بقیه باید حدس بزنن چه حسی داره.',
+  'اسم یه آهنگ رو بنویس و بقیه باید حدس بزنن خواننده‌ش کیه.','یه چیز خوب دربارهٔ هر کدوم از بچه‌ها بگو.'
+];
+
+const G = {};
+
+G.xo = { name: 'دوز', icon: '⭕', color: '#3d5afe', desc: 'سه‌تا در یک ردیف', min: 2, max: 2,
+  init(g) { g.board = Array(9).fill(''); g.turn = 0; g.line = null; },
+  act(g, a, from) {
+    if (a.t !== 'move' || g.phase !== 'play') return;
+    const idx = g.players.indexOf(from); if (idx !== g.turn) return;
+    const i = a.i; if (!(i >= 0 && i < 9) || g.board[i]) return;
+    g.board[i] = idx === 0 ? 'X' : 'O';
+    for (const l of LINES3) {
+      if (g.board[l[0]] && g.board[l[0]] === g.board[l[1]] && g.board[l[1]] === g.board[l[2]]) { g.line = l; return finish(g, [from]); }
+    }
+    if (g.board.every(Boolean)) return finish(g, [], 'مساوی شد');
+    g.turn = 1 - g.turn;
+  } };
+
+G.rps = { name: 'سنگ کاغذ قیچی', icon: '✊', color: '#ff922b', desc: 'اولی که ۳ دور ببره', min: 2, max: 2,
+  init(g) { g.wins = {}; g.players.forEach(p => { g.wins[p] = 0; }); g.round = 1; g.picked = {}; g._picks = {}; g.reveal = null; },
+  act(g, a, from, ctx) {
+    if (a.t !== 'pick' || g.phase !== 'play' || g.reveal) return;
+    if (!['r', 'p', 's'].includes(a.c) || g._picks[from]) return;
+    g._picks[from] = a.c; g.picked[from] = true;
+    const [p1, p2] = g.players;
+    if (g._picks[p1] && g._picks[p2]) {
+      const r = rpsWin(g._picks[p1], g._picks[p2]);
+      const w = r === 1 ? p1 : r === 2 ? p2 : null;
+      if (w) g.wins[w]++;
+      g.reveal = { picks: { ...g._picks }, winner: w };
+      if (g.wins[p1] >= 3 || g.wins[p2] >= 3) finish(g, [w]);
+      else ctx.later(2200, gg => { gg.reveal = null; gg._picks = {}; gg.picked = {}; gg.round++; });
+    }
+  } };
+
+G.c4 = { name: 'چهار در یک ردیف', icon: '🔴', color: '#e03131', desc: 'چهارتا رو کنار هم بچین', min: 2, max: 2,
+  init(g) { g.board = Array(42).fill(0); g.turn = 0; g.line = null; },
+  act(g, a, from) {
+    if (a.t !== 'drop' || g.phase !== 'play') return;
+    const idx = g.players.indexOf(from); if (idx !== g.turn) return;
+    const c = a.c; if (!(c >= 0 && c < 7)) return;
+    let r = -1;
+    for (let i = 5; i >= 0; i--) { if (!g.board[i * 7 + c]) { r = i; break; } }
+    if (r < 0) return;
+    const v = idx + 1; g.board[r * 7 + c] = v;
+    const line = c4win(g.board, r, c, v);
+    if (line) { g.line = line; return finish(g, [from]); }
+    if (g.board.every(Boolean)) return finish(g, [], 'مساوی شد');
+    g.turn = 1 - g.turn;
+  } };
+
+G.guess = { name: 'حدس عدد', icon: '🎯', color: '#0ca9c9', desc: 'عدد مخفی بین ۱ تا ۱۰۰', min: 2, max: 6,
+  init(g) { g._secret = 1 + rnd(100); g.lo = 1; g.hi = 100; g.turn = 0; g.log = []; },
+  act(g, a, from) {
+    if (a.t !== 'guess' || g.phase !== 'play') return;
+    if (g.players.indexOf(from) !== g.turn) return;
+    const n = parseInt(a.n, 10);
+    if (!(n >= g.lo && n <= g.hi)) return;
+    if (n === g._secret) { g.log.push({ p: from, n, r: 0 }); g.secret = n; return finish(g, [from]); }
+    if (n < g._secret) { g.lo = n + 1; g.log.push({ p: from, n, r: 1 }); } else { g.hi = n - 1; g.log.push({ p: from, n, r: -1 }); }
+    if (g.log.length > 10) g.log.shift();
+    nextTurn(g);
+  },
+  onLeave(g, name) { if (g.players[g.turn] === name) nextTurn(g); } };
+
+const EMO = ['🐶','🐱','🦊','🐼','🦁','🐸','🐵','🐙'];
+G.memory = { name: 'حافظه', icon: '🧠', color: '#9c36b5', desc: 'جفت‌ها رو پیدا کن', min: 1, max: 4,
+  init(g) { g._faces = shuffle([...EMO, ...EMO]); g.cards = Array(16).fill(null); g.up = []; g.done = []; g.turn = 0; g.lock = false; g.pts = {}; g.players.forEach(p => { g.pts[p] = 0; }); },
+  act(g, a, from, ctx) {
+    if (a.t !== 'flip' || g.phase !== 'play' || g.lock) return;
+    if (g.players.indexOf(from) !== g.turn) return;
+    const i = a.i; if (!(i >= 0 && i < 16) || g.done.includes(i) || g.up.includes(i)) return;
+    g.up.push(i); g.cards[i] = g._faces[i];
+    if (g.up.length === 2) {
+      const [x, y] = g.up;
+      if (g._faces[x] === g._faces[y]) {
+        g.done.push(x, y); g.pts[from]++; g.up = [];
+        if (g.done.length === 16) { const mx = maxOf(g.pts); finish(g, g.players.filter(p => g.pts[p] === mx)); }
+      } else {
+        g.lock = true;
+        ctx.later(1200, gg => { gg.up.forEach(k => { gg.cards[k] = null; }); gg.up = []; gg.lock = false; nextTurn(gg); });
+      }
+    }
+  },
+  onLeave(g, name) { if (g.players[g.turn] === name && !g.lock) nextTurn(g); } };
+
+G.tap = { name: 'سریع‌ترین انگشت', icon: '👆', color: '#ff4d8d', desc: '۸ ثانیه تند بزن', min: 1, max: 8,
+  init(g, ctx) {
+    g.stage = 'ready'; g.counts = {}; g.players.forEach(p => { g.counts[p] = 0; }); g.dur = 8;
+    ctx.later(3000, gg => {
+      gg.stage = 'go';
+      ctx.later(gg.dur * 1000 + 400, g2 => {
+        g2.stage = 'done';
+        const mx = maxOf(g2.counts);
+        finish(g2, mx > 0 ? g2.players.filter(p => g2.counts[p] === mx) : []);
+      });
+    });
+  },
+  act(g, a, from) {
+    if (a.t !== 'taps' || g.stage !== 'go') return;
+    const n = Math.min(parseInt(a.n, 10) || 0, 150);
+    if (n > g.counts[from]) g.counts[from] = n;
+  } };
+
+function reactNext(g, ctx) {
+  g.round++; g.stage = 'wait'; g.times = {}; g.early = {}; g.res = null;
+  const rd = g.round;
+  ctx.later(1800 + rnd(3500), gg => {
+    if (gg.round === rd && gg.stage === 'wait') {
+      gg.stage = 'go';
+      ctx.later(3500, g2 => { if (g2.round === rd && g2.stage === 'go') reactResolve(g2, ctx); });
+    }
+  });
+}
+function reactCheck(g, ctx) {
+  const act = activeOf(g);
+  if (g.stage === 'go' && act.every(p => g.times[p] != null || g.early[p])) reactResolve(g, ctx);
+  else if (g.stage === 'wait' && act.every(p => g.early[p])) reactResolve(g, ctx);
+}
+function reactResolve(g, ctx) {
+  if (g.stage === 'result') return;
+  const ent = Object.entries(g.times).sort((a, b) => a[1] - b[1]);
+  const w = ent.length ? ent[0][0] : null;
+  if (w) g.pts[w]++;
+  g.stage = 'result'; g.res = { winner: w, times: { ...g.times }, early: { ...g.early } };
+  if (g.round >= g.total) { const mx = maxOf(g.pts); finish(g, mx > 0 ? g.players.filter(p => g.pts[p] === mx) : []); }
+  else { const rd = g.round; ctx.later(2800, gg => { if (gg.round === rd && gg.stage === 'result' && gg.phase === 'play') reactNext(gg, ctx); }); }
+}
+G.react = { name: 'واکنش سریع', icon: '⚡', color: '#12b886', desc: 'سبز شد، زود بزن!', min: 1, max: 8,
+  init(g, ctx) { g.round = 0; g.total = 5; g.pts = {}; g.players.forEach(p => { g.pts[p] = 0; }); reactNext(g, ctx); },
+  act(g, a, from, ctx) {
+    if (g.phase !== 'play' || g.gone.includes(from)) return;
+    if (a.t === 'early' && g.stage === 'wait' && !g.early[from]) { g.early[from] = true; reactCheck(g, ctx); }
+    else if (a.t === 'react' && g.stage === 'go' && g.times[from] == null && !g.early[from]) {
+      g.times[from] = Math.max(60, Math.min(parseInt(a.ms, 10) || 9999, 5000)); reactCheck(g, ctx);
+    }
+  },
+  onLeave(g, name, ctx) { reactCheck(g, ctx); } };
+
+function quizNext(g, ctx) {
+  g.qi++;
+  if (g.qi >= g.qs.length) { const mx = maxOf(g.pts); return finish(g, g.players.filter(p => g.pts[p] === mx)); }
+  const q = g.qs[g.qi];
+  const opts = shuffle(q.slice(1).map((t, i) => ({ t, c: i === 0 })));
+  g.cur = { q: q[0], o: opts.map(x => x.t) }; g._ans = opts.findIndex(x => x.c);
+  g.answered = {}; g._choice = {}; g._at = {}; g.reveal = null; g.dur = 15; g._t0 = Date.now();
+  const qi = g.qi;
+  ctx.later(g.dur * 1000 + 500, gg => { if (gg.qi === qi && !gg.reveal) quizReveal(gg, ctx); });
+}
+function quizReveal(g, ctx) {
+  if (g.reveal) return;
+  g.reveal = { ans: g._ans, choice: { ...g._choice }, gain: {} };
+  for (const p of g.players) {
+    if (g._choice[p] === g._ans) {
+      const left = Math.max(0, g.dur * 1000 - (g._at[p] - g._t0));
+      const gain = 100 + Math.round(50 * left / (g.dur * 1000));
+      g.pts[p] += gain; g.reveal.gain[p] = gain;
+    }
+  }
+  const qi = g.qi;
+  ctx.later(3000, gg => { if (gg.qi === qi && gg.phase === 'play') quizNext(gg, ctx); });
+}
+G.quiz = { name: 'کوییز', icon: '🧩', color: '#5c7cfa', desc: '۱۰ سؤال، هرکی سریع‌تر', min: 1, max: 8,
+  init(g, ctx) { g.qs = shuffle(QZ).slice(0, 10); g.qi = -1; g.pts = {}; g.players.forEach(p => { g.pts[p] = 0; }); quizNext(g, ctx); },
+  act(g, a, from, ctx) {
+    if (a.t !== 'ans' || g.phase !== 'play' || g.reveal || g.answered[from]) return;
+    const i = parseInt(a.i, 10); if (!(i >= 0 && i < 4)) return;
+    g._choice[from] = i; g._at[from] = Date.now(); g.answered[from] = true;
+    if (activeOf(g).every(p => g.answered[p])) quizReveal(g, ctx);
+  },
+  onLeave(g, name, ctx) { if (!g.reveal && g.cur && activeOf(g).every(p => g.answered[p])) quizReveal(g, ctx); } };
+
+function drawEnd(g, ctx) {
+  if (g.stage !== 'draw') return;
+  g.stage = 'reveal';
+  const ri = g.ri;
+  ctx.later(4000, gg => { if (gg.ri === ri && gg.stage === 'reveal' && gg.phase === 'play') drawNext(gg, ctx); });
+}
+function drawNext(g, ctx) {
+  do { g.ri++; } while (g.ri < g.order.length && g.gone.includes(g.order[g.ri]));
+  if (g.ri >= g.order.length) { const mx = maxOf(g.pts); return finish(g, mx > 0 ? g.players.filter(p => g.pts[p] === mx) : []); }
+  g.drawer = g.order[g.ri];
+  const pool = WORDS.filter(w => !g._used.includes(w));
+  const w = pick(pool.length ? pool : WORDS);
+  g._used.push(w); g._word = w; g.wlen = [...w].length;
+  g.stage = 'draw'; g.dur = 70; g.guessed = {}; g.feed = []; g._t0 = Date.now();
+  const ri = g.ri;
+  ctx.later(g.dur * 1000, gg => { if (gg.ri === ri && gg.stage === 'draw') drawEnd(gg, ctx); });
+}
+const allGuessed = g => activeOf(g).filter(p => p !== g.drawer).every(p => g.guessed[p]);
+G.draw = { name: 'نقاشی و حدس', icon: '🎨', color: '#e8590c', desc: 'بکش، بقیه حدس بزنن', min: 2, max: 8,
+  init(g, ctx) {
+    g.order = shuffle(g.players); if (g.order.length < 4) g.order = g.order.concat(shuffle(g.players));
+    g.ri = -1; g.pts = {}; g.players.forEach(p => { g.pts[p] = 0; }); g._used = [];
+    drawNext(g, ctx);
+  },
+  act(g, a, from, ctx) {
+    if (g.phase !== 'play' || g.stage !== 'draw') return;
+    if (a.t === 'clear' && from === g.drawer) { ctx.raw({ k: 'clear' }); return; }
+    if (a.t === 'guess' && from !== g.drawer && !g.guessed[from]) {
+      const text = String(a.text || '').trim().slice(0, 30); if (!text) return;
+      if (norm(text) === norm(g._word)) {
+        const left = Math.max(0, g.dur * 1000 - (Date.now() - g._t0));
+        g.pts[from] += 50 + Math.round(50 * left / (g.dur * 1000)); g.pts[g.drawer] += 20;
+        g.guessed[from] = true; g.feed.push({ p: from, ok: true });
+        if (allGuessed(g)) drawEnd(g, ctx);
+      } else g.feed.push({ p: from, t: text });
+      if (g.feed.length > 14) g.feed.shift();
+    }
+  },
+  pers(v, name, raw) { v.word = (name === raw.drawer || raw.stage === 'reveal' || raw.phase === 'over') ? raw._word : null; },
+  onLeave(g, name, ctx) { if (g.stage === 'draw' && (g.drawer === name || allGuessed(g))) drawEnd(g, ctx); } };
+
+G.td = { name: 'جرأت یا حقیقت', icon: '🍾', color: '#c2255c', desc: 'بچرخون، ببین نوبت کیه', min: 2, max: 8,
+  init(g) { g.stage = 'idle'; g.target = null; g.card = null; g.n = 0; g.spin = 0; },
+  act(g, a, from, ctx) {
+    if (g.phase !== 'play') return;
+    if (a.t === 'spin' && ['idle', 'shown'].includes(g.stage)) {
+      g.stage = 'spin'; g.spin++; const sp = g.spin;
+      ctx.later(2000, gg => { if (gg.spin === sp && gg.stage === 'spin') { gg.target = pick(activeOf(gg)); gg.stage = 'choose'; gg.card = null; } });
+    } else if (a.t === 'choose' && g.stage === 'choose' && from === g.target && (a.c === 'truth' || a.c === 'dare')) {
+      g.card = { c: a.c, text: pick(a.c === 'truth' ? TRUTH : DARE) }; g.stage = 'shown'; g.n++;
+    } else if (a.t === 'reroll' && g.stage === 'shown' && from === g.target) {
+      g.card.text = pick(g.card.c === 'truth' ? TRUTH : DARE);
+    }
+  },
+  onLeave(g, name) { if (g.stage === 'choose' && g.target === name) { g.stage = 'idle'; g.target = null; } } };
+
+function createEngine(hooks) {
+  let game = null;
+  const ctx = {
+    later(ms, fn) { const gid = game && game.id; setTimeout(() => { if (game && game.id === gid) { fn(game); hooks.emit(game); } }, ms); },
+    raw(m) { hooks.raw(m); }
+  };
+  function begin(players, score) {
+    const T = G[game.type];
+    const ng = { id: Date.now() + rnd(100000), type: game.type, phase: 'play', players: players.slice(), starter: game.starter, score: score || {}, gone: [], winners: null, note: '', min: T.min, max: T.max };
+    game = ng; T.init(ng, ctx); hooks.emit(game);
+  }
+  const E = {};
+  E.getGame = () => game;
+  E.act = (from, a) => {
+    if (!a || typeof a.t !== 'string') return;
+    const t = a.t;
+    if (t === 'open') {
+      const T = G[a.type]; if (!T) return;
+      if (game && game.phase === 'play') return hooks.toast(from, 'یه بازی در جریانه');
+      if (game && game.phase === 'lobby' && game.starter !== from) return hooks.toast(from, 'یه بازی منتظر بازیکنه؛ بپیوند');
+      game = { id: Date.now() + rnd(100000), type: a.type, phase: 'lobby', players: [from], starter: from, score: {}, gone: [], min: T.min, max: T.max };
+      hooks.sys(from + ' بازی «' + T.name + '» رو شروع کرد؛ بپیوند! 🎮');
+      return hooks.emit(game);
+    }
+    if (!game) return;
+    if (t === 'join') {
+      if (game.phase !== 'lobby' || game.players.includes(from) || game.players.length >= game.max) return;
+      game.players.push(from);
+      if (game.players.length >= game.max) return begin(game.players, {});
+      return hooks.emit(game);
+    }
+    if (t === 'begin') {
+      if (game.phase !== 'lobby' || from !== game.starter || game.players.length < game.min) return;
+      return begin(game.players, {});
+    }
+    if (t === 'close') {
+      if (from === game.starter || (game.phase === 'over' && game.players.includes(from))) { game = null; hooks.emit(null); }
+      return;
+    }
+    if (t === 'again') {
+      if (game.phase !== 'over' || !game.players.includes(from)) return;
+      const pl = activeOf(game); if (pl.length < game.min) return;
+      return begin(pl.slice(1).concat(pl[0]), game.score);
+    }
+    if (game.phase === 'lobby' || !game.players.includes(from)) return;
+    G[game.type].act(game, a, from, ctx);
+    hooks.emit(game);
+  };
+  E.leave = name => {
+    if (!game) return;
+    if (game.phase === 'lobby') {
+      game.players = game.players.filter(p => p !== name);
+      if (!game.players.length) game = null; else if (game.starter === name) game.starter = game.players[0];
+      return hooks.emit(game);
+    }
+    if (!game.players.includes(name) || game.gone.includes(name)) return;
+    game.gone.push(name);
+    const act = activeOf(game);
+    if (!act.length) { game = null; return hooks.emit(null); }
+    if (game.phase === 'play') {
+      if (act.length < game.min) finish(game, act, name + ' بازی رو ترک کرد');
+      else if (G[game.type].onLeave) G[game.type].onLeave(game, name, ctx);
+    }
+    hooks.emit(game);
+  };
+  return E;
+}
+/*LOGIC_END*/
+
+/* =========================== رابط کاربری =========================== */
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const fa = n => Number(n).toLocaleString('fa-IR');
+const ja = o => esc(JSON.stringify(o));
+const COLORS = ['#3d5afe', '#ff4d8d', '#12b886', '#ff922b', '#9c36b5', '#0ca9c9', '#e8590c', '#5c7cfa'];
+const colorOf = n => { let h = 0; for (const ch of n) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return COLORS[h % COLORS.length]; };
+
+let me = '', code = '', isHost = false, peer = null, hostConn = null, inRoom = false;
+const conns = new Map();
+const st = { members: [], msgs: [], game: null };
+let tab = 'chat';
+
+/* ---------- ابزارها ---------- */
+let tt;
+function toast(t) { const el = $('toast'); el.textContent = t; el.classList.add('on'); clearTimeout(tt); tt = setTimeout(() => el.classList.remove('on'), 3000); }
+const since = {};
+function sinceOf(key) { if (!since[key]) { since[key] = Date.now(); const ks = Object.keys(since); if (ks.length > 60) delete since[ks[0]]; } return since[key]; }
+setInterval(() => {
+  const now = Date.now();
+  document.querySelectorAll('[data-end]').forEach(el => {
+    const end = +el.dataset.end;
+    if (el.dataset.bar) { el.style.width = Math.max(0, Math.min(100, (end - now) / (+el.dataset.dur * 1000) * 100)) + '%'; }
+    else el.textContent = fa(Math.max(0, Math.ceil((end - now) / 1000)));
+  });
+}, 250);
+
+/* ---------- شبکه ---------- */
+const send = (c, m) => { try { c.send(m); } catch (e) {} };
+function emitAll(m) { conns.forEach(c => send(c, m)); handleMsg(m); }
+function toTo(name, m) { if (name === me) handleMsg(m); else if (conns.get(name)) send(conns.get(name), m); }
+function viewOf(g, name) {
+  if (!g) return null;
+  const v = JSON.parse(JSON.stringify(g, (k, x) => (k[0] === '_' ? undefined : x)));
+  const T = G[g.type]; if (T && T.pers) T.pers(v, name, g);
+  return v;
+}
+function emitGame() {
+  const g = engine.getGame();
+  conns.forEach((c, name) => send(c, { k: 'game', g: viewOf(g, name) }));
+  handleMsg({ k: 'game', g: viewOf(g, me) });
+}
+function addChat(m) {
+  m.id = Date.now() + '-' + rnd(9999); m.t = Date.now();
+  st.msgs.push(m); if (st.msgs.length > 100) st.msgs.shift();
+  emitAll({ k: 'chat', m });
+}
+const engine = createEngine({
+  emit: () => emitGame(),
+  sys: text => addChat({ type: 'sys', text, user: '' }),
+  toast: (name, t) => toTo(name, { k: 'toast', t }),
+  raw: m => { conns.forEach(c => send(c, m)); handleMsg(m); }
+});
+function hostAct(from, a) {
+  if (!a) return;
+  if (a.t === 'chat') {
+    const text = String(a.text || '').trim().slice(0, 500); if (!text) return;
+    addChat({ type: 'text', user: from, text });
+  } else engine.act(from, a);
+}
+function act(a) { if (isHost) hostAct(me, a); else if (hostConn) send(hostConn, { k: 'act', a }); }
+function relaySeg(from, d) {
+  const g = engine.getGame();
+  if (!g || g.type !== 'draw' || g.drawer !== from || g.stage !== 'draw') return;
+  conns.forEach((c, n) => { if (n !== from) send(c, d); });
+  if (from !== me) handleMsg(d);
+}
+function sanName(n) { n = String(n || '').trim().replace(/^_+/, '').slice(0, 14); return n || 'مهمان'; }
+function uniqueName(n) { n = sanName(n); let u = n, i = 2; while (st.members.includes(u)) u = n + ' ' + fa(i++); return u; }
+const genCode = () => { const s = 'abcdefghjkmnpqrstuvwxyz23456789'; let c = ''; for (let i = 0; i < 5; i++) c += s[rnd(s.length)]; return c; };
+
+function onGuest(c) {
+  let name = null;
+  c.on('data', d => {
+    if (!d) return;
+    if (!name) {
+      if (d.k !== 'hello') return;
+      name = uniqueName(d.name); conns.set(name, c); st.members.push(name);
+      send(c, { k: 'welcome', you: name, members: st.members, msgs: st.msgs, game: viewOf(engine.getGame(), name), code });
+      emitAll({ k: 'members', list: st.members });
+      addChat({ type: 'sys', text: name + ' وارد اتاق شد 👋', user: '' });
+      return;
+    }
+    if (d.k === 'act') hostAct(name, d.a);
+    else if (d.k === 'seg') relaySeg(name, d);
+  });
+  const gone = () => {
+    if (!name || !conns.has(name)) return;
+    const n = name; conns.delete(n); st.members = st.members.filter(x => x !== n);
+    engine.leave(n);
+    emitAll({ k: 'members', list: st.members });
+    addChat({ type: 'sys', text: n + ' از اتاق رفت', user: '' });
+  };
+  c.on('close', gone); c.on('error', gone);
+}
+
+function lockLanding(on) { $('btnCreate').disabled = on; $('btnJoin').disabled = on; }
+function fatal(t) { toast(t); lockLanding(false); try { peer && peer.destroy(); } catch (e) {} peer = null; if (inRoom) showLanding(); }
+function showLanding(msg) {
+  inRoom = false; conns.clear(); st.members = []; st.msgs = []; st.game = null; hostConn = null; isHost = false;
+  try { peer && peer.destroy(); } catch (e) {} peer = null;
+  $('room').classList.add('off'); $('landing').classList.remove('off'); lockLanding(false);
+  if (msg) toast(msg);
+}
+
+function startHost(n) {
+  if (typeof Peer === 'undefined') return toast('اتصال به سرویس ارتباطی برقرار نشد. اینترنت رو چک کن.');
+  me = sanName(n); isHost = true; st.members = [me]; lockLanding(true);
+  let tries = 0;
+  const open = () => {
+    code = genCode();
+    peer = new Peer('cb-' + code);
+    peer.on('open', enterRoom);
+    peer.on('connection', onGuest);
+    peer.on('error', e => {
+      if (e.type === 'unavailable-id' && tries++ < 5) { try { peer.destroy(); } catch (x) {} open(); }
+      else fatal('ساخت اتاق ممکن نشد (' + e.type + ')');
+    });
+    peer.on('disconnected', () => { try { peer.reconnect(); } catch (e) {} });
+  };
+  open();
+}
+function startClient(n, c) {
+  if (typeof Peer === 'undefined') return toast('اتصال به سرویس ارتباطی برقرار نشد. اینترنت رو چک کن.');
+  me = sanName(n); code = c; isHost = false; lockLanding(true);
+  peer = new Peer();
+  peer.on('open', () => {
+    hostConn = peer.connect('cb-' + code, { serialization: 'json', reliable: true });
+    const to = setTimeout(() => fatal('اتصال برقرار نشد. کد رو چک کن یا دوباره امتحان کن.'), 15000);
+    hostConn.on('open', () => { clearTimeout(to); send(hostConn, { k: 'hello', name: me }); });
+    hostConn.on('data', handleMsg);
+    hostConn.on('close', () => { if (inRoom) showLanding('ارتباط با میزبان قطع شد'); });
+    hostConn.on('error', () => {});
+  });
+  peer.on('error', e => fatal(e.type === 'peer-unavailable' ? 'اتاقی با این کد پیدا نشد.' : 'خطا در اتصال (' + e.type + ')'));
+}
+
+/* ---------- دریافت پیام‌ها ---------- */
+function handleMsg(m) {
+  if (!m) return;
+  switch (m.k) {
+    case 'welcome': me = m.you; st.members = m.members; st.msgs = m.msgs; st.game = m.game; enterRoom(); break;
+    case 'members': st.members = m.list; renderMembers(); break;
+    case 'chat': st.msgs.push(m.m); if (st.msgs.length > 100) st.msgs.shift(); addBubble(m.m, true); if (tab !== 'chat' && m.m.type !== 'sys') $('dotChat').classList.add('on'); break;
+    case 'game': {
+      const prev = st.game; st.game = m.g;
+      if (tab !== 'games' && m.g && (!prev || prev.id !== m.g.id)) $('dotGames').classList.add('on');
+      renderGame(); break;
+    }
+    case 'toast': toast(m.t); break;
+    case 'seg': drawSeg(m.s); break;
+    case 'clear': clearCanvas(); break;
+  }
+}
+
+/* ---------- ورود به اتاق ---------- */
+function enterRoom() {
+  if (inRoom) { renderAll(); return; }
+  inRoom = true; lockLanding(false);
+  $('landing').classList.add('off'); $('room').classList.remove('off');
+  $('rcode').textContent = code; $('avatar').textContent = code;
+  try { history.replaceState(null, '', '#' + code); } catch (e) {}
+  renderAll();
+  setTab('chat');
+}
+function renderAll() { renderMembers(); renderChat(); renderGame(); }
+function renderMembers() {
+  $('members').innerHTML = st.members.map((n, i) => `<span class="mem" style="background:${colorOf(n)}">${i === 0 ? '👑 ' : ''}${esc(n)}</span>`).join('');
+}
+
+/* ---------- گفتگو ---------- */
+const fmtTime = t => new Date(t).toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' });
+function bubbleEl(m) {
+  if (m.type === 'sys') { const s = document.createElement('div'); s.className = 'sys'; s.textContent = m.text; return s; }
+  const mine = m.user === me;
+  const w = document.createElement('div'); w.className = 'msg ' + (mine ? 'me' : 'other');
+  if (!mine) { const who = document.createElement('div'); who.className = 'who'; who.style.color = colorOf(m.user); who.textContent = m.user; w.appendChild(who); }
+  const b = document.createElement('div'); b.className = 'bubble'; b.textContent = m.text; w.appendChild(b);
+  const t = document.createElement('div'); t.className = 'time'; t.textContent = fmtTime(m.t); w.appendChild(t);
+  return w;
+}
+function renderChat() {
+  const el = $('msgs'); el.innerHTML = '';
+  if (!st.msgs.length) { el.innerHTML = '<div class="empty"><b>اتاق خالیه</b>اولین پیام رو بفرست یا از تب «بازی‌ها» یه بازی شروع کن.</div>'; return; }
+  st.msgs.forEach(m => el.appendChild(bubbleEl(m)));
+  el.scrollTop = el.scrollHeight;
+}
+function addBubble(m) {
+  const el = $('msgs'); const first = el.querySelector('.empty'); if (first) el.innerHTML = '';
+  const near = el.scrollHeight - el.scrollTop - el.clientHeight < 140;
+  el.appendChild(bubbleEl(m));
+  if (near || m.user === me) el.scrollTop = el.scrollHeight;
+}
+$('composer').addEventListener('submit', e => {
+  e.preventDefault();
+  const v = $('txt').value.trim(); if (!v) return;
+  $('txt').value = ''; act({ t: 'chat', text: v }); $('txt').focus();
+});
+
+/* ---------- تب‌ها و دعوت ---------- */
+function setTab(t) {
+  tab = t;
+  document.querySelectorAll('.tab').forEach(b => b.classList.toggle('on', b.dataset.tab === t));
+  $('paneChat').classList.toggle('on', t === 'chat'); $('paneGames').classList.toggle('on', t === 'games');
+  if (t === 'chat') { $('dotChat').classList.remove('on'); const el = $('msgs'); el.scrollTop = el.scrollHeight; }
+  else $('dotGames').classList.remove('on');
+}
+document.querySelectorAll('.tab').forEach(b => { b.onclick = () => setTab(b.dataset.tab); });
+const inviteLink = () => location.href.split('#')[0] + '#' + code;
+function openInvite() {
+  $('bigCode').textContent = code;
+  const local = location.protocol === 'file:';
+  $('linkBox').textContent = local ? inviteLink() + '  (برای کار کردن لینک، فایل باید آنلاین باشه؛ وگرنه فقط کد رو بده)' : inviteLink();
+  $('btnShare').style.display = navigator.share ? '' : 'none';
+  $('sheet').classList.add('on');
+}
+$('btnInvite').onclick = openInvite;
+$('btnCloseSheet').onclick = () => $('sheet').classList.remove('on');
+$('sheet').addEventListener('click', e => { if (e.target === $('sheet')) $('sheet').classList.remove('on'); });
+$('btnCopy').onclick = async () => {
+  const text = inviteLink();
+  try { await navigator.clipboard.writeText(text); toast('لینک کپی شد ✅'); }
+  catch (e) { const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); toast('لینک کپی شد ✅'); } catch (x) { toast('کپی نشد؛ لینک رو دستی کپی کن'); } ta.remove(); }
+};
+$('btnShare').onclick = () => { try { navigator.share({ title: 'چت‌بازی', text: 'بیا با هم چت و بازی کنیم! کد اتاق: ' + code, url: inviteLink() }); } catch (e) {} };
+
+/* ---------- ورود (صفحهٔ اول) ---------- */
+(() => {
+  const h = location.hash.slice(1).toLowerCase().replace(/[^a-z0-9]/g, '');
+  if (h.length >= 4 && h.length <= 8) {
+    $('inCode').value = h;
+    const iv = $('invited'); iv.style.display = 'block'; iv.textContent = '🎉 دعوت شدی به اتاق ' + h + '! اسمت رو بنویس و وارد شو.';
+  }
+})();
+const nameVal = () => { const n = $('inName').value.trim(); if (!n) { toast('اول اسمت رو بنویس'); $('inName').focus(); return null; } return n; };
+$('btnCreate').onclick = () => { const n = nameVal(); if (n) startHost(n); };
+$('btnJoin').onclick = () => {
+  const n = nameVal(); if (!n) return;
+  let s = $('inCode').value.trim(); if (s.includes('#')) s = s.split('#').pop();
+  s = s.toLowerCase().replace(/[^a-z0-9]/g, '');
+  if (s.length < 4) return toast('کد اتاق رو وارد کن');
+  startClient(n, s);
+};
+$('inName').addEventListener('keydown', e => { if (e.key === 'Enter') ($('inCode').value ? $('btnJoin') : $('btnCreate')).click(); });
+$('inCode').addEventListener('keydown', e => { if (e.key === 'Enter') $('btnJoin').click(); });
+
+/* =========================== نمای بازی‌ها =========================== */
+const gb = $('gameBody');
+gb.addEventListener('click', e => {
+  const el = e.target.closest('[data-act]'); if (!el || el.disabled) return;
+  try { act(JSON.parse(el.dataset.act)); } catch (x) {}
+});
+gb.addEventListener('submit', e => {
+  e.preventDefault();
+  const f = e.target;
+  if (f.dataset.form === 'guess') { const v = f.querySelector('input').value; if (v) act({ t: 'guess', n: v }); }
+  if (f.dataset.form === 'dguess') { const i = f.querySelector('input'); if (i.value.trim()) { act({ t: 'guess', text: i.value }); i.value = ''; } }
+});
+
+const VIEW = {};
+const sc = (g, p) => fa((g.score && g.score[p]) || 0);
+const who = (g, p) => g.gone && g.gone.includes(p);
+function canClose(g) { return g.starter === me || (g.phase === 'over' && g.players.includes(me)); }
+function head(g, T) {
+  return `<div class="ghead" style="--gc:${T.color}"><div class="gtitle"><span>${T.icon}</span>${esc(T.name)}</div>${canClose(g) ? `<button class="link" data-act="${ja({ t: 'close' })}">خروج از بازی</button>` : ''}</div>`;
+}
+function overBox(g) {
+  if (g.phase !== 'over') return '';
+  const w = g.winners || [];
+  const t = !w.length ? '🤝 برنده‌ای نبود' : (w.length === 1 && w[0] === me) ? '🎉 تو بردی!' : '🏆 ' + w.map(esc).join(' و ') + (w.length > 1 ? ' (مساوی)' : ' برد');
+  const mine = g.players.includes(me);
+  return `<div class="over"><div class="ot">${t}</div>${g.note ? `<div class="on">${esc(g.note)}</div>` : ''}${mine ? `<div class="btn-row"><button class="btn-sm" data-act="${ja({ t: 'again' })}">دوباره</button><button class="btn-sm alt" data-act="${ja({ t: 'close' })}">بازی‌های دیگه</button></div>` : ''}</div>`;
+}
+function scoreRow(g, vals, turnName, label) {
+  return `<div class="prow">${g.players.map(p => `<div class="pl ${turnName === p ? 'turn' : ''} ${who(g, p) ? 'gone' : ''}"><span class="nm">${esc(p)}${p === me ? ' (تو)' : ''}</span><span class="pt">${vals ? fa(vals[p] || 0) : ''}${label || ''}</span></div>`).join('')}</div>`;
+}
+const needText = T => T.min === T.max ? fa(T.min) + ' نفره' : fa(T.min) + ' تا ' + fa(T.max) + ' نفر';
+
+function renderGame() {
+  const g = st.game;
+  stopSpin();
+  if (!g) { gb.dataset.vtype = ''; delete gb.dataset.vkey; return renderMenu(); }
+  const T = G[g.type]; if (!T) return;
+  if (g.phase === 'lobby') { gb.dataset.vtype = ''; return renderLobby(g, T); }
+  if (gb.dataset.vtype !== g.type + g.id) { gb.dataset.vtype = g.type + g.id; delete gb.dataset.vkey; }
+  VIEW[g.type](g, T);
+}
+function renderMenu() {
+  gb.innerHTML = `<div class="gh2">یه بازی انتخاب کن</div><div class="ghint">دوستات هم با یه کلیک می‌پیوندن. هر بازی نیاز به تعداد مشخصی بازیکن داره.</div>
+  <div class="grid">${Object.entries(G).map(([id, T]) => `<button class="tile" style="--gc:${T.color}" data-act="${ja({ t: 'open', type: id })}"><span class="ti">${T.icon}</span><b>${esc(T.name)}</b><small>${esc(T.desc)}</small><small>${needText(T)}</small></button>`).join('')}</div>`;
+}
+function renderLobby(g, T) {
+  const inG = g.players.includes(me);
+  const enough = g.players.length >= T.min;
+  gb.innerHTML = `${head(g, T)}<div class="ghint">منتظر بازیکن‌ها… (${needText(T)})</div>
+  <div class="chips">${g.players.map(p => `<span class="chip" style="color:${colorOf(p)}">${esc(p)}</span>`).join('')}</div>
+  <div class="btn-row">
+    ${!inG ? `<button class="btn-sm mint" data-act="${ja({ t: 'join' })}">بپیوند</button>` : ''}
+    ${g.starter === me ? `<button class="btn-sm" data-act="${ja({ t: 'begin' })}" ${enough ? '' : 'disabled'}>شروع بازی</button>` : ''}
+    <button class="btn-sm alt" id="lobbyInvite">دعوت دوست</button>
+  </div>
+  ${g.starter === me && !enough ? '<div class="ghint" style="margin-top:12px;text-align:center">برای شروع، دوستت باید بپیونده.</div>' : ''}`;
+  $('lobbyInvite').onclick = openInvite;
+}
+
+/* ---- دوز ---- */
+VIEW.xo = (g, T) => {
+  const turnName = g.players[g.turn], my = g.phase === 'play' && turnName === me;
+  const status = g.phase === 'over' ? '' : my ? 'نوبت توئه!' : 'نوبت ' + esc(turnName);
+  gb.innerHTML = head(g, T) + `<div class="prow">${g.players.map((p, i) => `<div class="pl ${g.phase === 'play' && g.turn === i ? 'turn' : ''} ${who(g, p) ? 'gone' : ''}"><span class="sym" style="color:${i ? 'var(--pink)' : 'var(--blue)'}">${i ? 'O' : 'X'}</span><span class="nm">${esc(p)}</span><span class="pt">${sc(g, p)}</span></div>`).join('')}</div>
+  <div class="status ${my ? 'good' : ''}">${status}</div>
+  <div class="b3">${g.board.map((c, i) => `<button class="cell ${c.toLowerCase()} ${g.line && g.line.includes(i) ? 'win' : ''}" data-act="${ja({ t: 'move', i })}" ${(c || !my) ? 'disabled' : ''}>${c}</button>`).join('')}</div>` + overBox(g);
+};
+
+/* ---- سنگ کاغذ قیچی ---- */
+const RI = { r: '✊', p: '✋', s: '✌️' };
+VIEW.rps = (g, T) => {
+  const [a, b] = g.players;
+  let body = '';
+  if (g.reveal) {
+    const w = g.reveal.winner;
+    body = `<div class="reveal">${[a, b].map(p => `<div class="rv ${w === p ? 'w' : ''}"><div class="big">${RI[g.reveal.picks[p]]}</div><div class="nm">${esc(p)}</div></div>`).join('')}</div>
+    <div class="status ${w === me ? 'good' : ''}">${w ? (w === me ? 'این دور رو بردی! 🎉' : esc(w) + ' این دور رو برد') : 'مساوی شد 🤝'}</div>`;
+  } else if (g.phase === 'play' && g.players.includes(me) && !g.picked[me]) {
+    body = `<div class="status">دور ${fa(g.round)}: انتخاب کن</div><div class="rps-row">${['r', 'p', 's'].map(c => `<button class="rps-btn" data-act="${ja({ t: 'pick', c })}" aria-label="${{ r: 'سنگ', p: 'کاغذ', s: 'قیچی' }[c]}">${RI[c]}</button>`).join('')}</div>`;
+  } else if (g.phase === 'play') body = `<div class="status">${g.picked[me] ? 'انتخابت ثبت شد؛ منتظر حریف…' : 'دارن بازی می‌کنن (تماشاچی)'}</div>`;
+  gb.innerHTML = head(g, T) + scoreRow(g, g.wins, null, ' / ۳') + body + overBox(g);
+};
+
+/* ---- چهار در یک ردیف ---- */
+VIEW.c4 = (g, T) => {
+  const turnName = g.players[g.turn], my = g.phase === 'play' && turnName === me;
+  let cols = '';
+  for (let c = 0; c < 7; c++) {
+    let cells = '';
+    for (let r = 0; r < 6; r++) { const v = g.board[r * 7 + c]; cells += `<span class="coin ${v ? 'p' + v : ''} ${g.line && g.line.includes(r * 7 + c) ? 'win' : ''}"></span>`; }
+    cols += `<button class="col" data-act="${ja({ t: 'drop', c })}" ${(!my || g.board[c]) ? 'disabled' : ''} aria-label="ستون ${c + 1}">${cells}</button>`;
+  }
+  gb.innerHTML = head(g, T) + `<div class="prow">${g.players.map((p, i) => `<div class="pl ${g.phase === 'play' && g.turn === i ? 'turn' : ''} ${who(g, p) ? 'gone' : ''}"><span class="dot${i + 1}"></span><span class="nm">${esc(p)}</span><span class="pt">${sc(g, p)}</span></div>`).join('')}</div>
+  <div class="status ${my ? 'good' : ''}">${g.phase === 'over' ? '' : my ? 'نوبت توئه! یه ستون انتخاب کن' : 'نوبت ' + esc(turnName)}</div><div class="c4">${cols}</div>` + overBox(g);
+};
+
+/* ---- حدس عدد ---- */
+VIEW.guess = (g, T) => {
+  const turnName = g.players[g.turn], my = g.phase === 'play' && turnName === me;
+  const lg = g.log.slice().reverse().map(x => `<div><b>${esc(x.p)}</b><span>${fa(x.n)} ← ${x.r === 0 ? '🎯 درست!' : x.r === 1 ? 'عدد بالاتره ⬆️' : 'عدد پایین‌تره ⬇️'}</span></div>`).join('');
+  gb.innerHTML = head(g, T) + scoreRow(g, g.score, g.phase === 'play' ? turnName : null, ' 🏆')
+    + (g.phase === 'play' ? `<div class="range">عدد بین ${fa(g.lo)} و ${fa(g.hi)} هست</div>
+    ${my ? `<form class="gform" data-form="guess"><input type="number" inputmode="numeric" min="${g.lo}" max="${g.hi}" placeholder="حدست؟" required><button class="btn-sm">بفرست</button></form>` : `<div class="status">نوبت ${esc(turnName)}</div>`}` : `<div class="range">عدد مخفی ${fa(g.secret)} بود</div>`)
+    + `<div class="log">${lg}</div>` + overBox(g);
+  const inp = gb.querySelector('input'); if (inp) inp.focus();
+};
+
+/* ---- حافظه ---- */
+VIEW.memory = (g, T) => {
+  const turnName = g.players[g.turn], my = g.phase === 'play' && turnName === me && !g.lock;
+  gb.innerHTML = head(g, T) + scoreRow(g, g.pts, g.phase === 'play' ? turnName : null, ' جفت')
+    + `<div class="status ${turnName === me && g.phase === 'play' ? 'good' : ''}">${g.phase === 'over' ? '' : turnName === me ? 'نوبت توئه!' : 'نوبت ' + esc(turnName)}</div>
+    <div class="mem4" style="--gc:${T.color}">${g.cards.map((c, i) => `<button class="mc ${c ? (g.done.includes(i) ? 'done' : 'up') : ''}" data-act="${ja({ t: 'flip', i })}" ${(!my || c) ? 'disabled' : ''}>${c || '❔'}</button>`).join('')}</div>` + overBox(g);
+};
+
+/* ---- سریع‌ترین انگشت ---- */
+const tap = { n: 0, sent: 0, iv: null, end: 0, gid: null };
+function stopTap() { if (tap.iv) { clearInterval(tap.iv); tap.iv = null; } }
+function tapBars(g) {
+  const mx = Math.max(10, ...Object.values(g.counts));
+  gb.querySelectorAll('[data-p]').forEach(el => {
+    const p = el.dataset.p; const v = p === me && g.stage === 'go' ? Math.max(tap.n, g.counts[p] || 0) : (g.counts[p] || 0);
+    el.querySelector('i').style.width = (v / mx * 100) + '%'; el.querySelector('em').textContent = fa(v);
+  });
+}
+VIEW.tap = (g, T) => {
+  const key = g.id + ':' + g.stage + ':' + g.phase;
+  if (gb.dataset.vkey === key) { tapBars(g); return; }
+  gb.dataset.vkey = key;
+  const inG = g.players.includes(me);
+  let main = '';
+  if (g.stage === 'ready') main = `<div class="pad tapbtn" style="--gc:${T.color}"><div>آماده باش…<small>به‌محض شروع، تند تند بزن</small></div></div>`;
+  else if (g.stage === 'go') {
+    main = `<div class="status">زمان باقی‌مونده: <span class="tmr" data-end="${sinceOf(key) + g.dur * 1000}">${fa(g.dur)}</span></div>
+    <button class="pad tapbtn" id="tapBtn" style="--gc:${T.color}" ${inG ? '' : 'disabled'}><div>${inG ? 'بزن بزن!' : 'تماشاچی'}<div class="big-n" id="myTaps">۰</div></div></button>`;
+  } else main = '';
+  gb.innerHTML = head(g, T) + main + `<div class="tbars" style="--gc:${T.color}">${g.players.map(p => `<div class="tb" data-p="${esc(p)}"><i></i><span><b>${esc(p)}</b><em>۰</em></span></div>`).join('')}</div>` + overBox(g);
+  stopTap();
+  if (g.stage === 'go' && inG) {
+    tap.n = 0; tap.sent = 0; tap.end = sinceOf(key) + g.dur * 1000 + 300;
+    const btn = $('tapBtn'), out = $('myTaps');
+    btn.addEventListener('pointerdown', e => { e.preventDefault(); if (Date.now() > tap.end) return; tap.n++; out.textContent = fa(tap.n); });
+    tap.iv = setInterval(() => { if (tap.n > tap.sent) { tap.sent = tap.n; act({ t: 'taps', n: tap.n }); } if (Date.now() > tap.end + 600) stopTap(); }, 300);
+  }
+  tapBars(g);
+};
+
+/* ---- واکنش سریع ---- */
+let goAt = 0; const reacted = {};
+VIEW.react = (g, T) => {
+  const key = g.id + ':' + g.round + ':' + g.stage + ':' + g.phase;
+  if (gb.dataset.vkey === key) return;
+  gb.dataset.vkey = key;
+  const inG = g.players.includes(me);
+  let pad = '';
+  if (g.stage === 'wait') pad = `<button class="pad wait" id="rpad" ${inG ? '' : 'disabled'}><div>صبر کن…<small>وقتی سبز شد بزن. زود نزنی!</small></div></button>`;
+  else if (g.stage === 'go') { goAt = performance.now(); pad = `<button class="pad go" id="rpad" ${inG ? '' : 'disabled'}><div>حالا بزن! ⚡</div></button>`; }
+  else if (g.stage === 'result' && g.res) {
+    const rows = g.players.map(p => { const t = g.res.times[p]; const e = g.res.early[p]; return `<div class="${g.res.winner === p ? 'w' : ''}"><span>${esc(p)}</span><span>${t != null ? fa(t) + ' میلی‌ثانیه' : e ? 'زود زد ❌' : 'نزد'}</span></div>`; }).join('');
+    pad = `<div class="pad res"><div style="width:100%"><div style="font-size:22px;font-weight:900">${g.res.winner ? (g.res.winner === me ? '🎉 تو سریع‌تر بودی!' : esc(g.res.winner) + ' سریع‌تر بود') : 'کسی نزد'}</div><div class="rtab">${rows}</div></div></div>`;
+  }
+  gb.innerHTML = head(g, T) + `<div class="qinfo"><span>دور ${fa(Math.min(g.round, g.total))} از ${fa(g.total)}</span></div>` + scoreRow(g, g.pts, null, ' امتیاز') + pad + overBox(g);
+  const rp = $('rpad');
+  if (rp) rp.addEventListener('pointerdown', e => {
+    e.preventDefault();
+    const rk = g.id + ':' + g.round; if (reacted[rk]) return; reacted[rk] = true;
+    if (g.stage === 'wait') { act({ t: 'early' }); rp.innerHTML = '<div>زود زدی ❌<small>منتظر بقیه…</small></div>'; }
+    else { const ms = Math.round(performance.now() - goAt); act({ t: 'react', ms }); rp.innerHTML = `<div>${fa(ms)} میلی‌ثانیه<small>منتظر بقیه…</small></div>`; }
+  });
+};
+
+/* ---- کوییز ---- */
+VIEW.quiz = (g, T) => {
+  if (g.phase === 'over' || !g.cur) { gb.innerHTML = head(g, T) + scoreRow(g, g.pts, null, ' امتیاز') + overBox(g); return; }
+  const key = g.id + ':q' + g.qi;
+  const inG = g.players.includes(me), done = g.reveal, mine = g.answered[me];
+  const myChoice = done ? g.reveal.choice[me] : undefined;
+  gb.innerHTML = head(g, T) + `<div class="qinfo"><span>سؤال ${fa(g.qi + 1)} از ${fa(g.qs.length)}</span><span class="tmr" data-end="${sinceOf(key) + g.dur * 1000}">${fa(g.dur)}</span></div>
+  <div class="bar" style="--gc:${T.color}"><i data-bar="1" data-dur="${g.dur}" data-end="${sinceOf(key) + g.dur * 1000}"></i></div>
+  <div class="qbox">${esc(g.cur.q)}</div>
+  <div class="opts">${g.cur.o.map((t, i) => {
+    let cls = ''; if (done) cls = i === g.reveal.ans ? 'ok' : (i === myChoice ? 'bad' : ''); else if (mine && window.__qsel === key + i) cls = 'sel';
+    return `<button class="opt ${cls}" data-act="${ja({ t: 'ans', i })}" ${(done || mine || !inG) ? 'disabled' : ''}>${esc(t)}</button>`;
+  }).join('')}</div>
+  <div class="status" style="margin-top:12px">${done ? (g.reveal.gain[me] ? '+' + fa(g.reveal.gain[me]) + ' امتیاز 🎉' : (mine ? 'اشتباه بود' : 'جواب ندادی')) : mine ? 'جوابت ثبت شد؛ منتظر بقیه…' : ''}</div>`
+  + scoreRow(g, g.pts, null, ' امتیاز');
+};
+gb.addEventListener('click', e => {
+  const el = e.target.closest('.opt'); if (!el || !st.game || st.game.type !== 'quiz') return;
+  try { window.__qsel = st.game.id + ':q' + st.game.qi + JSON.parse(el.dataset.act).i; } catch (x) {}
+}, true);
+
+/* ---- نقاشی و حدس ---- */
+const cv = document.createElement('canvas'); cv.width = 640; cv.height = 480;
+const cx = cv.getContext('2d'); cx.fillStyle = '#fff'; cx.fillRect(0, 0, 640, 480);
+let pen = { c: '#1b1f3b', w: 5 }; let drawing = false, buf = [], lastFlush = 0;
+const gin = document.createElement('form'); gin.className = 'gform'; gin.dataset.form = 'dguess';
+gin.innerHTML = '<input placeholder="حدست چیه؟" maxlength="30" autocomplete="off"><button class="btn-sm">بفرست</button>';
+function clearCanvas() { cx.fillStyle = '#fff'; cx.fillRect(0, 0, 640, 480); }
+function drawSeg(s) {
+  if (!s || !Array.isArray(s.p) || !s.p.length) return;
+  cx.strokeStyle = s.c; cx.lineWidth = s.w; cx.lineCap = 'round'; cx.lineJoin = 'round';
+  cx.beginPath(); cx.moveTo(s.p[0][0] * 640, s.p[0][1] * 480);
+  if (s.p.length === 1) cx.lineTo(s.p[0][0] * 640 + 0.1, s.p[0][1] * 480);
+  for (let i = 1; i < s.p.length; i++) cx.lineTo(s.p[i][0] * 640, s.p[i][1] * 480);
+  cx.stroke();
+}
+function sendSeg(p) {
+  const d = { k: 'seg', s: { p, c: pen.c, w: pen.w } };
+  if (isHost) relaySeg(me, d); else if (hostConn) send(hostConn, d);
+}
+function flush(force) {
+  if (buf.length < 2 && !force) return;
+  if (!buf.length) return;
+  const p = buf.slice(); buf = [p[p.length - 1]]; sendSeg(p); lastFlush = Date.now();
+}
+const pt = e => { const r = cv.getBoundingClientRect(); return [Math.min(1, Math.max(0, (e.clientX - r.left) / r.width)), Math.min(1, Math.max(0, (e.clientY - r.top) / r.height))]; };
+let canDraw = false;
+cv.addEventListener('pointerdown', e => {
+  if (!canDraw) return; e.preventDefault(); cv.setPointerCapture(e.pointerId);
+  drawing = true; const p = pt(e); buf = [p]; drawSeg({ p: [p], c: pen.c, w: pen.w });
+});
+cv.addEventListener('pointermove', e => {
+  if (!drawing || !canDraw) return; e.preventDefault();
+  const p = pt(e); const prev = buf[buf.length - 1]; buf.push(p);
+  drawSeg({ p: [prev, p], c: pen.c, w: pen.w });
+  if (Date.now() - lastFlush > 60) flush();
+});
+const endStroke = () => { if (!drawing) return; drawing = false; flush(true); buf = []; };
+cv.addEventListener('pointerup', endStroke); cv.addEventListener('pointercancel', endStroke);
+
+VIEW.draw = (g, T) => {
+  const isDrawer = g.drawer === me && g.stage === 'draw';
+  canDraw = isDrawer;
+  const key = g.id + ':d' + g.ri;
+  if (gb.dataset.dkey !== key) { gb.dataset.dkey = key; clearCanvas(); }
+  const guessed = g.guessed && g.guessed[me];
+  const wordTxt = g.word ? esc(g.word) : '▢ '.repeat(g.wlen || 0).trim();
+  const palette = ['#1b1f3b', '#e03131', '#ff922b', '#fcc419', '#12b886', '#3d5afe', '#9c36b5', '#ffffff'];
+  gb.innerHTML = head(g, T)
+    + (g.phase === 'over' ? '' : `<div class="draw-top"><span>${g.drawer === me ? 'تو نقاشی: ' : esc(g.drawer) + ' می‌کشه: '}<span class="word">${wordTxt}</span></span>${g.stage === 'draw' ? `<span class="tmr" data-end="${sinceOf(key) + g.dur * 1000}">${fa(g.dur)}</span>` : '<span class="tmr">⏱</span>'}</div>`)
+    + '<div class="cvwrap" id="cvSlot"></div>'
+    + (isDrawer ? `<div class="tools">${palette.map(c => `<button class="sw ${pen.c === c ? 'on' : ''}" data-pen="${c}" style="background:${c}" aria-label="رنگ"></button>`).join('')}<button class="btn-sm alt" data-pen-w="${pen.w > 5 ? 5 : 14}">${pen.w > 5 ? 'قلم نازک' : 'قلم ضخیم'}</button><button class="btn-sm alt" data-act="${ja({ t: 'clear' })}">پاک‌کن همه</button></div>` : '')
+    + (g.stage === 'draw' && g.drawer !== me && g.players.includes(me) && !guessed ? '<div id="gslot"></div>' : '')
+    + (guessed ? '<div class="status good">درست حدس زدی! 🎉</div>' : '')
+    + (g.stage === 'reveal' ? `<div class="status">کلمه «${esc(g.word)}» بود</div>` : '')
+    + `<div class="feed">${(g.feed || []).slice().reverse().map(f => f.ok ? `<div class="ok">✅ ${esc(f.p)} درست حدس زد</div>` : `<div><b>${esc(f.p)}:</b> ${esc(f.t)}</div>`).join('')}</div>`
+    + scoreRow(g, g.pts, g.stage === 'draw' ? g.drawer : null, ' امتیاز') + overBox(g);
+  $('cvSlot').appendChild(cv);
+  const gs = $('gslot'); if (gs) gs.appendChild(gin);
+  gb.querySelectorAll('[data-pen]').forEach(b => { b.onclick = () => { pen.c = b.dataset.pen; renderGame(); }; });
+  gb.querySelectorAll('[data-pen-w]').forEach(b => { b.onclick = () => { pen.w = +b.dataset.penW; renderGame(); }; });
+};
+
+/* ---- جرأت یا حقیقت ---- */
+let spinIv = null;
+function stopSpin() { if (spinIv) { clearInterval(spinIv); spinIv = null; } }
+VIEW.td = (g, T) => {
+  const inG = g.players.includes(me);
+  let main = '';
+  if (g.stage === 'idle') main = `<div class="spin"><div class="big">🍾</div><div class="sub">برای انتخاب یه نفر بچرخون</div></div><div class="btn-row"><button class="btn-sm pink" data-act="${ja({ t: 'spin' })}" ${inG ? '' : 'disabled'}>بچرخون!</button></div>`;
+  else if (g.stage === 'spin') main = '<div class="spin"><div class="big" id="spinName">…</div><div class="sub">در حال چرخیدن…</div></div>';
+  else if (g.stage === 'choose') main = `<div class="spin"><div class="big" style="color:${colorOf(g.target)}">${esc(g.target)}</div><div class="sub">${g.target === me ? 'نوبت توئه! انتخاب کن' : 'منتظر انتخاب ' + esc(g.target)}</div></div>
+    ${g.target === me ? `<div class="btn-row"><button class="btn-sm" data-act="${ja({ t: 'choose', c: 'truth' })}">حقیقت 🙊</button><button class="btn-sm pink" data-act="${ja({ t: 'choose', c: 'dare' })}">جرأت 🔥</button></div>` : ''}`;
+  else if (g.stage === 'shown' && g.card) main = `<div class="spin"><div class="big" style="color:${colorOf(g.target)};font-size:24px">${esc(g.target)}</div></div>
+    <div class="card2" style="--gc:${g.card.c === 'truth' ? '#3d5afe' : '#c2255c'}"><small>${g.card.c === 'truth' ? 'حقیقت 🙊' : 'جرأت 🔥'}</small>${esc(g.card.text)}</div>
+    <div class="btn-row">${g.target === me ? `<button class="btn-sm alt" data-act="${ja({ t: 'reroll' })}">یکی دیگه</button>` : ''}<button class="btn-sm pink" data-act="${ja({ t: 'spin' })}" ${inG ? '' : 'disabled'}>نفر بعدی</button></div>`;
+  gb.innerHTML = head(g, T) + main;
+  if (g.stage === 'spin') {
+    const el = $('spinName'); const names = g.players;
+    spinIv = setInterval(() => { el.textContent = names[rnd(names.length)]; }, 90);
+  }
+};
+
+})();
+</script>
+</body>
+</html>
