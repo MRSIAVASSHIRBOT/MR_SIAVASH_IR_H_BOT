@@ -4,7 +4,18 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#3d5afe">
+<meta name="description" content="چت و ۱۰ بازی دونفره — بدون ثبت‌نام، مستقیم با دوستت">
+<meta property="og:title" content="چت‌بازی — چت و بازی با دوستت">
+<meta property="og:description" content="۱۰ بازی، بدون ثبت‌نام، لینک رو بفرست و شروع کن">
+<meta property="og:type" content="website">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <title>چت‌بازی</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%233d5afe'/><text x='50' y='50' font-size='60' text-anchor='middle' dominant-baseline='central' font-family='sans-serif' font-weight='900' fill='%23fff'>چ</text></svg>">
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%233d5afe'/><text x='50' y='50' font-size='60' text-anchor='middle' dominant-baseline='central' font-family='sans-serif' font-weight='900' fill='%23fff'>چ</text></svg>">
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet">
 <style>
   :root {
     --bg:#eef1fb; --card:#fff; --ink:#1b1f3b; --muted:#6b7194; --line:#dde2f5;
@@ -30,7 +41,6 @@
   .app { max-width:560px; height:100dvh; margin:0 auto; position:relative; overflow:hidden; display:flex; flex-direction:column; background:var(--bg); }
   @media (min-width:600px) { .app { box-shadow:0 0 60px rgba(40,55,140,.18); } }
 
-  /* ---------- landing ---------- */
   .landing { flex:1; overflow-y:auto; display:flex; flex-direction:column; justify-content:center; padding:26px 22px; gap:16px; }
   .landing.off, .room.off { display:none; }
   .tiles { display:grid; grid-template-columns:repeat(4,46px); gap:6px; width:max-content; }
@@ -49,15 +59,20 @@
   .or { text-align:center; color:var(--muted); font-size:14px; }
   .note { font-size:13px; color:var(--muted); background:var(--card); border-radius:12px; padding:10px 12px; }
 
-  /* ---------- room ---------- */
   .room { flex:1; display:flex; flex-direction:column; min-height:0; }
   .top { display:flex; align-items:center; gap:10px; padding:10px 14px; padding-top:calc(10px + env(safe-area-inset-top)); background:var(--card); box-shadow:0 2px 12px rgba(40,55,140,.08); z-index:3; }
-  .avatar { width:42px; height:42px; border-radius:14px; background:var(--blue); color:#fff; display:grid; place-items:center; font-weight:900; font-size:15px; flex:none; direction:ltr; }
+  .avatar { width:42px; height:42px; border-radius:14px; background:var(--blue); color:#fff; display:grid; place-items:center; font-weight:900; font-size:15px; flex:none; direction:ltr; position:relative; }
+  .avatar::after { content:''; position:absolute; bottom:-2px; inset-inline-end:-2px; width:12px; height:12px; border-radius:50%; background:#fcc419; border:2px solid var(--card); transition:background .2s; }
+  .avatar.online::after { background:var(--mint); }
+  .avatar.offline::after { background:#e03131; }
   .top .info { flex:1; min-width:0; }
-  .top .rt { font-weight:800; line-height:1.3; }
+  .top .rt { font-weight:800; line-height:1.3; display:flex; align-items:center; gap:6px; }
+  .top .rt .stat { font-size:11px; font-weight:700; color:var(--muted); padding:1px 8px; border-radius:999px; background:var(--bg); }
   .members { display:flex; gap:4px; overflow:hidden; margin-top:2px; }
   .mem { font-size:12px; padding:1px 8px; border-radius:999px; color:#fff; white-space:nowrap; }
   .invite-btn { background:var(--pink); color:#fff; font-weight:800; padding:9px 14px; border-radius:13px; font-size:14px; box-shadow:var(--shadow); }
+  .mute-btn { font-size:20px; padding:6px; border-radius:10px; line-height:1; opacity:.7; }
+  .mute-btn.on { opacity:1; }
   .panes { flex:1; min-height:0; position:relative; }
   .pane { position:absolute; inset:0; display:none; flex-direction:column; min-height:0; }
   .pane.on { display:flex; }
@@ -67,7 +82,6 @@
   .tab i { position:absolute; top:6px; inset-inline-end:22%; width:11px; height:11px; border-radius:50%; background:var(--mint); display:none; }
   .tab i.on { display:block; }
 
-  /* chat */
   .msgs { flex:1; overflow-y:auto; padding:14px 12px; display:flex; flex-direction:column; gap:6px; overscroll-behavior:contain; }
   .empty { margin:auto; text-align:center; color:var(--muted); padding:20px; }
   .empty b { display:block; color:var(--ink); font-size:18px; margin-bottom:4px; }
@@ -85,7 +99,6 @@
   .send { width:48px; border-radius:16px; background:var(--blue); color:#fff; display:grid; place-items:center; }
   .send svg { transform:scaleX(-1); }
 
-  /* games shell */
   .gscroll { flex:1; overflow-y:auto; padding:14px 14px 22px; overscroll-behavior:contain; }
   .gh2 { font-size:22px; font-weight:900; }
   .ghint { color:var(--muted); font-size:14px; margin-bottom:14px; }
@@ -200,9 +213,11 @@
 
   .sheet { position:absolute; inset:0; z-index:8; background:rgba(10,12,40,.5); display:none; align-items:flex-end; }
   .sheet.on { display:flex; }
-  .sheet .box { width:100%; background:var(--bg); border-radius:26px 26px 0 0; padding:18px 18px calc(22px + env(safe-area-inset-bottom)); display:flex; flex-direction:column; gap:12px; }
+  .sheet .box { width:100%; background:var(--bg); border-radius:26px 26px 0 0; padding:18px 18px calc(22px + env(safe-area-inset-bottom)); display:flex; flex-direction:column; gap:12px; max-height:92dvh; overflow-y:auto; }
   .code { text-align:center; font-size:38px; font-weight:900; letter-spacing:6px; direction:ltr; color:var(--blue); }
   .linkbox { background:var(--card); border:2px dashed var(--line); border-radius:14px; padding:10px 12px; font-size:13px; direction:ltr; word-break:break-all; color:var(--muted); }
+  .qrwrap { display:flex; justify-content:center; padding:8px; }
+  .qrwrap img { width:180px; height:180px; border-radius:16px; background:#fff; padding:8px; box-shadow:var(--shadow); }
 
   .toast { position:absolute; top:84px; left:50%; transform:translateX(-50%); z-index:20; background:var(--ink); color:var(--bg); padding:8px 16px; border-radius:999px; font-size:14px; opacity:0; pointer-events:none; transition:opacity .2s; max-width:90%; text-align:center; }
   .toast.on { opacity:1; }
@@ -212,7 +227,6 @@
 <body>
 <div class="app">
 
-  <!-- ورود -->
   <section class="landing" id="landing">
     <div class="tiles" aria-hidden="true">
       <span style="background:#3d5afe">X</span><span style="background:#ff4d8d">O</span><span style="background:#12b886">✊</span><span style="background:#ff922b">🎨</span>
@@ -231,17 +245,17 @@
       <input id="inCode" autocomplete="off" placeholder="مثلاً k7m2x" dir="ltr" style="text-align:center">
     </div>
     <button class="btn-main alt" id="btnJoin">ورود به اتاق</button>
-    <div class="note">اتفاقی که می‌افته: تو اتاق رو می‌سازی، لینک دعوت رو برای دوستت می‌فرستی، اون هم با یه کلیک وارد می‌شه. نیازی به ثبت‌نام نیست.</div>
+    <div class="note">تو اتاق رو می‌سازی، لینک دعوت رو برای دوستت می‌فرستی، اون هم با یه کلیک وارد می‌شه. نیازی به ثبت‌نام نیست.</div>
   </section>
 
-  <!-- اتاق -->
   <section class="room off" id="room">
     <header class="top">
       <div class="avatar" id="avatar">…</div>
       <div class="info">
-        <div class="rt">اتاق <span id="rcode"></span></div>
+        <div class="rt">اتاق <span id="rcode"></span> <span class="stat" id="stat">در حال اتصال…</span></div>
         <div class="members" id="members"></div>
       </div>
+      <button class="mute-btn on" id="btnMute" title="صدا" aria-label="صدا">🔊</button>
       <button class="invite-btn" id="btnInvite">دعوت</button>
     </header>
     <div class="panes">
@@ -261,6 +275,7 @@
     <div class="sheet" id="sheet">
       <div class="box">
         <div style="font-weight:900;font-size:19px">دوستت رو دعوت کن</div>
+        <div class="qrwrap" id="qrWrap"></div>
         <div class="code" id="bigCode"></div>
         <div class="linkbox" id="linkBox"></div>
         <button class="btn-main" id="btnCopy">کپی لینک دعوت</button>
@@ -276,7 +291,53 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js"></script>
 <script>
 (() => {
-/*LOGIC_START*/
+/* ---------- پیکربندی WebRTC ---------- */
+const PEER_CFG = {
+  debug: 1,
+  config: {
+    iceServers: [
+      { urls: 'stun:stun.l.google.com:19302' },
+      { urls: 'stun:stun1.l.google.com:19302' },
+      { urls: 'stun:stun.cloudflare.com:3478' },
+      { urls: 'turn:openrelay.metered.ca:80', username: 'openrelayproject', credential: 'openrelayproject' },
+      { urls: 'turn:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' },
+      { urls: 'turn:openrelay.metered.ca:443?transport=tcp', username: 'openrelayproject', credential: 'openrelayproject' },
+    ],
+    iceCandidatePoolSize: 10
+  }
+};
+
+/* ---------- صدا ---------- */
+let audioCtx = null, soundOn = true;
+try { soundOn = localStorage.getItem('cb_sound') !== '0'; } catch(e){}
+function beep(freq, dur) {
+  if (!soundOn) return;
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.connect(g); g.connect(audioCtx.destination);
+    o.type = 'sine'; o.frequency.value = freq || 750;
+    g.gain.setValueAtTime(0.06, audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + (dur || 0.14));
+    o.start(); o.stop(audioCtx.currentTime + (dur || 0.14));
+  } catch(e) {}
+}
+
+/* ---------- Rate limit ---------- */
+const rate = new Map();
+function allow(key, max, ms) {
+  const now = Date.now();
+  const arr = (rate.get(key) || []).filter(t => now - t < ms);
+  if (arr.length >= max) return false;
+  arr.push(now);
+  if (arr.length === 0) rate.set(key, arr); else rate.set(key, arr);
+  return true;
+}
+setInterval(() => { if (rate.size > 100) { const now = Date.now(); for (const [k, v] of rate) if (!v.length || now - v[v.length-1] > 10000) rate.delete(k); } }, 30000);
+
+/* ---------- منطق بازی‌ها (بدون تغییر) ---------- */
 const rnd = n => Math.floor(Math.random() * n);
 const pick = a => a[rnd(a.length)];
 const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = rnd(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; };
@@ -653,7 +714,6 @@ function createEngine(hooks) {
   };
   return E;
 }
-/*LOGIC_END*/
 
 /* =========================== رابط کاربری =========================== */
 const $ = id => document.getElementById(id);
@@ -668,7 +728,6 @@ const conns = new Map();
 const st = { members: [], msgs: [], game: null };
 let tab = 'chat';
 
-/* ---------- ابزارها ---------- */
 let tt;
 function toast(t) { const el = $('toast'); el.textContent = t; el.classList.add('on'); clearTimeout(tt); tt = setTimeout(() => el.classList.remove('on'), 3000); }
 const since = {};
@@ -682,7 +741,14 @@ setInterval(() => {
   });
 }, 250);
 
-/* ---------- شبکه ---------- */
+function setStatus(text, cls) {
+  const el = $('stat');
+  if (!el) return;
+  el.textContent = text;
+  $('avatar').classList.remove('online', 'offline');
+  if (cls) $('avatar').classList.add(cls);
+}
+
 const send = (c, m) => { try { c.send(m); } catch (e) {} };
 function emitAll(m) { conns.forEach(c => send(c, m)); handleMsg(m); }
 function toTo(name, m) { if (name === me) handleMsg(m); else if (conns.get(name)) send(conns.get(name), m); }
@@ -697,10 +763,12 @@ function emitGame() {
   conns.forEach((c, name) => send(c, { k: 'game', g: viewOf(g, name) }));
   handleMsg({ k: 'game', g: viewOf(g, me) });
 }
+/* ✅ fix: addChat بدون double-push */
 function addChat(m) {
   m.id = Date.now() + '-' + rnd(9999); m.t = Date.now();
   st.msgs.push(m); if (st.msgs.length > 100) st.msgs.shift();
-  emitAll({ k: 'chat', m });
+  addBubble(m);
+  conns.forEach(c => send(c, { k: 'chat', m }));
 }
 const engine = createEngine({
   emit: () => emitGame(),
@@ -712,6 +780,7 @@ function hostAct(from, a) {
   if (!a) return;
   if (a.t === 'chat') {
     const text = String(a.text || '').trim().slice(0, 500); if (!text) return;
+    if (!allow('chat:' + from, 10, 3000)) return toTo(from, { k: 'toast', t: 'یه کم آروم‌تر!' });
     addChat({ type: 'text', user: from, text });
   } else engine.act(from, a);
 }
@@ -719,6 +788,7 @@ function act(a) { if (isHost) hostAct(me, a); else if (hostConn) send(hostConn, 
 function relaySeg(from, d) {
   const g = engine.getGame();
   if (!g || g.type !== 'draw' || g.drawer !== from || g.stage !== 'draw') return;
+  if (!allow('seg:' + from, 200, 1000)) return;
   conns.forEach((c, n) => { if (n !== from) send(c, d); });
   if (from !== me) handleMsg(d);
 }
@@ -736,6 +806,7 @@ function onGuest(c) {
       send(c, { k: 'welcome', you: name, members: st.members, msgs: st.msgs, game: viewOf(engine.getGame(), name), code });
       emitAll({ k: 'members', list: st.members });
       addChat({ type: 'sys', text: name + ' وارد اتاق شد 👋', user: '' });
+      beep(660, 0.1);
       return;
     }
     if (d.k === 'act') hostAct(name, d.a);
@@ -752,7 +823,7 @@ function onGuest(c) {
 }
 
 function lockLanding(on) { $('btnCreate').disabled = on; $('btnJoin').disabled = on; }
-function fatal(t) { toast(t); lockLanding(false); try { peer && peer.destroy(); } catch (e) {} peer = null; if (inRoom) showLanding(); }
+function fatal(t) { toast(t); lockLanding(false); setStatus('قطع', 'offline'); try { peer && peer.destroy(); } catch (e) {} peer = null; if (inRoom) showLanding(); }
 function showLanding(msg) {
   inRoom = false; conns.clear(); st.members = []; st.msgs = []; st.game = null; hostConn = null; isHost = false;
   try { peer && peer.destroy(); } catch (e) {} peer = null;
@@ -766,39 +837,45 @@ function startHost(n) {
   let tries = 0;
   const open = () => {
     code = genCode();
-    peer = new Peer('cb-' + code);
-    peer.on('open', enterRoom);
+    peer = new Peer('cb-' + code, PEER_CFG);
+    peer.on('open', () => { setStatus('آنلاین', 'online'); enterRoom(); });
     peer.on('connection', onGuest);
     peer.on('error', e => {
       if (e.type === 'unavailable-id' && tries++ < 5) { try { peer.destroy(); } catch (x) {} open(); }
       else fatal('ساخت اتاق ممکن نشد (' + e.type + ')');
     });
-    peer.on('disconnected', () => { try { peer.reconnect(); } catch (e) {} });
+    peer.on('disconnected', () => { setStatus('اتصال مجدد…'); try { peer.reconnect(); } catch (e) {} });
   };
   open();
 }
 function startClient(n, c) {
   if (typeof Peer === 'undefined') return toast('اتصال به سرویس ارتباطی برقرار نشد. اینترنت رو چک کن.');
   me = sanName(n); code = c; isHost = false; lockLanding(true);
-  peer = new Peer();
+  peer = new Peer(PEER_CFG);
   peer.on('open', () => {
+    setStatus('اتصال…');
     hostConn = peer.connect('cb-' + code, { serialization: 'json', reliable: true });
-    const to = setTimeout(() => fatal('اتصال برقرار نشد. کد رو چک کن یا دوباره امتحان کن.'), 15000);
-    hostConn.on('open', () => { clearTimeout(to); send(hostConn, { k: 'hello', name: me }); });
+    const to = setTimeout(() => fatal('اتصال برقرار نشد. کد رو چک کن یا دوباره امتحان کن.'), 20000);
+    hostConn.on('open', () => { clearTimeout(to); send(hostConn, { k: 'hello', name: me }); setStatus('آنلاین', 'online'); });
     hostConn.on('data', handleMsg);
     hostConn.on('close', () => { if (inRoom) showLanding('ارتباط با میزبان قطع شد'); });
     hostConn.on('error', () => {});
   });
   peer.on('error', e => fatal(e.type === 'peer-unavailable' ? 'اتاقی با این کد پیدا نشد.' : 'خطا در اتصال (' + e.type + ')'));
+  peer.on('disconnected', () => setStatus('اتصال مجدد…'));
 }
 
-/* ---------- دریافت پیام‌ها ---------- */
 function handleMsg(m) {
   if (!m) return;
   switch (m.k) {
     case 'welcome': me = m.you; st.members = m.members; st.msgs = m.msgs; st.game = m.game; enterRoom(); break;
     case 'members': st.members = m.list; renderMembers(); break;
-    case 'chat': st.msgs.push(m.m); if (st.msgs.length > 100) st.msgs.shift(); addBubble(m.m, true); if (tab !== 'chat' && m.m.type !== 'sys') $('dotChat').classList.add('on'); break;
+    case 'chat':
+      st.msgs.push(m.m); if (st.msgs.length > 100) st.msgs.shift();
+      addBubble(m.m);
+      if (m.m.user !== me && m.m.type === 'text') { beep(850, 0.1); if (document.hidden) notify(m.m.user, m.m.text); }
+      if (tab !== 'chat' && m.m.type !== 'sys') $('dotChat').classList.add('on');
+      break;
     case 'game': {
       const prev = st.game; st.game = m.g;
       if (tab !== 'games' && m.g && (!prev || prev.id !== m.g.id)) $('dotGames').classList.add('on');
@@ -810,13 +887,21 @@ function handleMsg(m) {
   }
 }
 
-/* ---------- ورود به اتاق ---------- */
+function notify(user, text) {
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  try { new Notification(user, { body: text, icon: 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2222%22 fill=%22%233d5afe%22/><text x=%2250%22 y=%2250%22 font-size=%2260%22 text-anchor=%22middle%22 dominant-baseline=%22central%22 fill=%22%23fff%22>چ</text></svg>' }); } catch(e) {}
+}
+
 function enterRoom() {
   if (inRoom) { renderAll(); return; }
   inRoom = true; lockLanding(false);
   $('landing').classList.add('off'); $('room').classList.remove('off');
   $('rcode').textContent = code; $('avatar').textContent = code;
+  setStatus('آنلاین', 'online');
   try { history.replaceState(null, '', '#' + code); } catch (e) {}
+  if ('Notification' in window && Notification.permission === 'default') {
+    setTimeout(() => Notification.requestPermission().catch(()=>{}), 3000);
+  }
   renderAll();
   setTab('chat');
 }
@@ -825,7 +910,6 @@ function renderMembers() {
   $('members').innerHTML = st.members.map((n, i) => `<span class="mem" style="background:${colorOf(n)}">${i === 0 ? '👑 ' : ''}${esc(n)}</span>`).join('');
 }
 
-/* ---------- گفتگو ---------- */
 const fmtTime = t => new Date(t).toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' });
 function bubbleEl(m) {
   if (m.type === 'sys') { const s = document.createElement('div'); s.className = 'sys'; s.textContent = m.text; return s; }
@@ -854,7 +938,6 @@ $('composer').addEventListener('submit', e => {
   $('txt').value = ''; act({ t: 'chat', text: v }); $('txt').focus();
 });
 
-/* ---------- تب‌ها و دعوت ---------- */
 function setTab(t) {
   tab = t;
   document.querySelectorAll('.tab').forEach(b => b.classList.toggle('on', b.dataset.tab === t));
@@ -866,8 +949,11 @@ document.querySelectorAll('.tab').forEach(b => { b.onclick = () => setTab(b.data
 const inviteLink = () => location.href.split('#')[0] + '#' + code;
 function openInvite() {
   $('bigCode').textContent = code;
+  const link = inviteLink();
   const local = location.protocol === 'file:';
-  $('linkBox').textContent = local ? inviteLink() + '  (برای کار کردن لینک، فایل باید آنلاین باشه؛ وگرنه فقط کد رو بده)' : inviteLink();
+  $('linkBox').textContent = local ? link + '  (لینک روی file کار نمی‌کنه؛ کد رو دستی بده)' : link;
+  /* QR */
+  $('qrWrap').innerHTML = `<img alt="QR" src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&margin=8&data=${encodeURIComponent(link)}">`;
   $('btnShare').style.display = navigator.share ? '' : 'none';
   $('sheet').classList.add('on');
 }
@@ -877,11 +963,22 @@ $('sheet').addEventListener('click', e => { if (e.target === $('sheet')) $('shee
 $('btnCopy').onclick = async () => {
   const text = inviteLink();
   try { await navigator.clipboard.writeText(text); toast('لینک کپی شد ✅'); }
-  catch (e) { const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); toast('لینک کپی شد ✅'); } catch (x) { toast('کپی نشد؛ لینک رو دستی کپی کن'); } ta.remove(); }
+  catch (e) { const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); toast('لینک کپی شد ✅'); } catch (x) { toast('کپی نشد؛ دستی کپی کن'); } ta.remove(); }
 };
 $('btnShare').onclick = () => { try { navigator.share({ title: 'چت‌بازی', text: 'بیا با هم چت و بازی کنیم! کد اتاق: ' + code, url: inviteLink() }); } catch (e) {} };
+$('btnMute').onclick = () => {
+  soundOn = !soundOn;
+  $('btnMute').textContent = soundOn ? '🔊' : '🔇';
+  $('btnMute').classList.toggle('on', soundOn);
+  try { localStorage.setItem('cb_sound', soundOn ? '1' : '0'); } catch(e){}
+  if (soundOn) beep(880, 0.08);
+  toast(soundOn ? 'صدا روشن' : 'صدا خاموش');
+};
+$('btnMute').textContent = soundOn ? '🔊' : '🔇';
+$('btnMute').classList.toggle('on', soundOn);
 
-/* ---------- ورود (صفحهٔ اول) ---------- */
+/* بارگذاری اسم ذخیره‌شده */
+try { const saved = localStorage.getItem('cb_name'); if (saved) $('inName').value = saved; } catch(e){}
 (() => {
   const h = location.hash.slice(1).toLowerCase().replace(/[^a-z0-9]/g, '');
   if (h.length >= 4 && h.length <= 8) {
@@ -889,7 +986,12 @@ $('btnShare').onclick = () => { try { navigator.share({ title: 'چت‌بازی'
     const iv = $('invited'); iv.style.display = 'block'; iv.textContent = '🎉 دعوت شدی به اتاق ' + h + '! اسمت رو بنویس و وارد شو.';
   }
 })();
-const nameVal = () => { const n = $('inName').value.trim(); if (!n) { toast('اول اسمت رو بنویس'); $('inName').focus(); return null; } return n; };
+const nameVal = () => {
+  const n = $('inName').value.trim();
+  if (!n) { toast('اول اسمت رو بنویس'); $('inName').focus(); return null; }
+  try { localStorage.setItem('cb_name', n); } catch(e){}
+  return n;
+};
 $('btnCreate').onclick = () => { const n = nameVal(); if (n) startHost(n); };
 $('btnJoin').onclick = () => {
   const n = nameVal(); if (!n) return;
@@ -901,7 +1003,6 @@ $('btnJoin').onclick = () => {
 $('inName').addEventListener('keydown', e => { if (e.key === 'Enter') ($('inCode').value ? $('btnJoin') : $('btnCreate')).click(); });
 $('inCode').addEventListener('keydown', e => { if (e.key === 'Enter') $('btnJoin').click(); });
 
-/* =========================== نمای بازی‌ها =========================== */
 const gb = $('gameBody');
 gb.addEventListener('click', e => {
   const el = e.target.closest('[data-act]'); if (!el || el.disabled) return;
@@ -960,7 +1061,6 @@ function renderLobby(g, T) {
   $('lobbyInvite').onclick = openInvite;
 }
 
-/* ---- دوز ---- */
 VIEW.xo = (g, T) => {
   const turnName = g.players[g.turn], my = g.phase === 'play' && turnName === me;
   const status = g.phase === 'over' ? '' : my ? 'نوبت توئه!' : 'نوبت ' + esc(turnName);
@@ -969,7 +1069,6 @@ VIEW.xo = (g, T) => {
   <div class="b3">${g.board.map((c, i) => `<button class="cell ${c.toLowerCase()} ${g.line && g.line.includes(i) ? 'win' : ''}" data-act="${ja({ t: 'move', i })}" ${(c || !my) ? 'disabled' : ''}>${c}</button>`).join('')}</div>` + overBox(g);
 };
 
-/* ---- سنگ کاغذ قیچی ---- */
 const RI = { r: '✊', p: '✋', s: '✌️' };
 VIEW.rps = (g, T) => {
   const [a, b] = g.players;
@@ -984,7 +1083,6 @@ VIEW.rps = (g, T) => {
   gb.innerHTML = head(g, T) + scoreRow(g, g.wins, null, ' / ۳') + body + overBox(g);
 };
 
-/* ---- چهار در یک ردیف ---- */
 VIEW.c4 = (g, T) => {
   const turnName = g.players[g.turn], my = g.phase === 'play' && turnName === me;
   let cols = '';
@@ -997,7 +1095,6 @@ VIEW.c4 = (g, T) => {
   <div class="status ${my ? 'good' : ''}">${g.phase === 'over' ? '' : my ? 'نوبت توئه! یه ستون انتخاب کن' : 'نوبت ' + esc(turnName)}</div><div class="c4">${cols}</div>` + overBox(g);
 };
 
-/* ---- حدس عدد ---- */
 VIEW.guess = (g, T) => {
   const turnName = g.players[g.turn], my = g.phase === 'play' && turnName === me;
   const lg = g.log.slice().reverse().map(x => `<div><b>${esc(x.p)}</b><span>${fa(x.n)} ← ${x.r === 0 ? '🎯 درست!' : x.r === 1 ? 'عدد بالاتره ⬆️' : 'عدد پایین‌تره ⬇️'}</span></div>`).join('');
@@ -1008,7 +1105,6 @@ VIEW.guess = (g, T) => {
   const inp = gb.querySelector('input'); if (inp) inp.focus();
 };
 
-/* ---- حافظه ---- */
 VIEW.memory = (g, T) => {
   const turnName = g.players[g.turn], my = g.phase === 'play' && turnName === me && !g.lock;
   gb.innerHTML = head(g, T) + scoreRow(g, g.pts, g.phase === 'play' ? turnName : null, ' جفت')
@@ -1016,7 +1112,6 @@ VIEW.memory = (g, T) => {
     <div class="mem4" style="--gc:${T.color}">${g.cards.map((c, i) => `<button class="mc ${c ? (g.done.includes(i) ? 'done' : 'up') : ''}" data-act="${ja({ t: 'flip', i })}" ${(!my || c) ? 'disabled' : ''}>${c || '❔'}</button>`).join('')}</div>` + overBox(g);
 };
 
-/* ---- سریع‌ترین انگشت ---- */
 const tap = { n: 0, sent: 0, iv: null, end: 0, gid: null };
 function stopTap() { if (tap.iv) { clearInterval(tap.iv); tap.iv = null; } }
 function tapBars(g) {
@@ -1042,13 +1137,12 @@ VIEW.tap = (g, T) => {
   if (g.stage === 'go' && inG) {
     tap.n = 0; tap.sent = 0; tap.end = sinceOf(key) + g.dur * 1000 + 300;
     const btn = $('tapBtn'), out = $('myTaps');
-    btn.addEventListener('pointerdown', e => { e.preventDefault(); if (Date.now() > tap.end) return; tap.n++; out.textContent = fa(tap.n); });
+    btn.addEventListener('pointerdown', e => { e.preventDefault(); if (Date.now() > tap.end) return; tap.n++; out.textContent = fa(tap.n); if (navigator.vibrate) navigator.vibrate(8); });
     tap.iv = setInterval(() => { if (tap.n > tap.sent) { tap.sent = tap.n; act({ t: 'taps', n: tap.n }); } if (Date.now() > tap.end + 600) stopTap(); }, 300);
   }
   tapBars(g);
 };
 
-/* ---- واکنش سریع ---- */
 let goAt = 0; const reacted = {};
 VIEW.react = (g, T) => {
   const key = g.id + ':' + g.round + ':' + g.stage + ':' + g.phase;
@@ -1067,12 +1161,11 @@ VIEW.react = (g, T) => {
   if (rp) rp.addEventListener('pointerdown', e => {
     e.preventDefault();
     const rk = g.id + ':' + g.round; if (reacted[rk]) return; reacted[rk] = true;
-    if (g.stage === 'wait') { act({ t: 'early' }); rp.innerHTML = '<div>زود زدی ❌<small>منتظر بقیه…</small></div>'; }
-    else { const ms = Math.round(performance.now() - goAt); act({ t: 'react', ms }); rp.innerHTML = `<div>${fa(ms)} میلی‌ثانیه<small>منتظر بقیه…</small></div>`; }
+    if (g.stage === 'wait') { act({ t: 'early' }); rp.innerHTML = '<div>زود زدی ❌<small>منتظر بقیه…</small></div>'; if (navigator.vibrate) navigator.vibrate([50,30,50]); }
+    else { const ms = Math.round(performance.now() - goAt); act({ t: 'react', ms }); rp.innerHTML = `<div>${fa(ms)} میلی‌ثانیه<small>منتظر بقیه…</small></div>`; if (navigator.vibrate) navigator.vibrate(20); }
   });
 };
 
-/* ---- کوییز ---- */
 VIEW.quiz = (g, T) => {
   if (g.phase === 'over' || !g.cur) { gb.innerHTML = head(g, T) + scoreRow(g, g.pts, null, ' امتیاز') + overBox(g); return; }
   const key = g.id + ':q' + g.qi;
@@ -1093,7 +1186,6 @@ gb.addEventListener('click', e => {
   try { window.__qsel = st.game.id + ':q' + st.game.qi + JSON.parse(el.dataset.act).i; } catch (x) {}
 }, true);
 
-/* ---- نقاشی و حدس ---- */
 const cv = document.createElement('canvas'); cv.width = 640; cv.height = 480;
 const cx = cv.getContext('2d'); cx.fillStyle = '#fff'; cx.fillRect(0, 0, 640, 480);
 let pen = { c: '#1b1f3b', w: 5 }; let drawing = false, buf = [], lastFlush = 0;
@@ -1155,7 +1247,6 @@ VIEW.draw = (g, T) => {
   gb.querySelectorAll('[data-pen-w]').forEach(b => { b.onclick = () => { pen.w = +b.dataset.penW; renderGame(); }; });
 };
 
-/* ---- جرأت یا حقیقت ---- */
 let spinIv = null;
 function stopSpin() { if (spinIv) { clearInterval(spinIv); spinIv = null; } }
 VIEW.td = (g, T) => {
@@ -1174,6 +1265,29 @@ VIEW.td = (g, T) => {
     spinIv = setInterval(() => { el.textContent = names[rnd(names.length)]; }, 90);
   }
 };
+
+/* PWA manifest داینامیک */
+try {
+  const mf = {
+    name: 'چت‌بازی',
+    short_name: 'چت‌بازی',
+    start_url: '.',
+    display: 'standalone',
+    background_color: '#eef1fb',
+    theme_color: '#3d5afe',
+    lang: 'fa',
+    dir: 'rtl',
+    icons: [{
+      src: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%233d5afe'/><text x='50' y='50' font-size='60' text-anchor='middle' dominant-baseline='central' font-family='sans-serif' font-weight='900' fill='%23fff'>چ</text></svg>",
+      sizes: 'any', type: 'image/svg+xml', purpose: 'any maskable'
+    }]
+  };
+  const blob = new Blob([JSON.stringify(mf)], { type: 'application/json' });
+  const link = document.createElement('link');
+  link.rel = 'manifest';
+  link.href = URL.createObjectURL(blob);
+  document.head.appendChild(link);
+} catch(e) {}
 
 })();
 </script>
