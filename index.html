@@ -394,7 +394,7 @@ input,textarea{font:inherit;color:inherit;}
 <body>
 <div class="app" id="app">
 
-  <section class="landing" id="landing">http://localhost:2435/storage/emulated/0/%DA%86%D8%AA+%D8%A8%D8%A7%D8%B2%DB%8C+/index.html#p4zn8
+  <section class="landing" id=
     <div class="tiles"><span style="background:#3d5afe">X</span><span style="background:#ff4d8d">O</span><span style="background:#12b886">✊</span><span style="background:#ff922b">🎨</span></div>
     <h1>چت بازی</h1>
     <p> خیلی خوش آمدید ، این بازی توسط ✨  « MR_SIAVASH_IR_BOT » طراحی شده تا شما با دوستانتان راحت وقت بگذرونید و خاطرات خوش بسازید ✨ </p>
@@ -554,14 +554,34 @@ input,textarea{font:inherit;color:inherit;}
 'use strict';
 
 /* ================== CONFIG ================== */
-const PEER_CFG = { debug: 0, config: {
-  iceServers: [
-    { urls: 'stun:stun.l.google.com:19302' },
-    { urls: 'stun:stun.cloudflare.com:3478' },
-    { urls: 'turn:openrelay.metered.ca:80', username:'openrelayproject', credential:'openrelayproject' },
-    { urls: 'turn:openrelay.metered.ca:443', username:'openrelayproject', credential:'openrelayproject' },
-  ], iceCandidatePoolSize: 10
-}};
+
+const PEER_CFG = {
+  debug: 0,
+  config: {
+    iceServers: [
+      { urls: 'stun:stun.l.google.com:19302' },
+      { urls: 'stun:stun1.l.google.com:19302' },
+      { urls: 'stun:stun.cloudflare.com:3478' },
+      // سرورهای TURN جایگزین برای عبور از محدودیت‌های شبکه
+      {
+        urls: 'turn:openrelay.metered.ca:80',
+        username: 'openrelayproject',
+        credential: 'openrelayproject'
+      },
+      {
+        urls: 'turn:openrelay.metered.ca:443',
+        username: 'openrelayproject',
+        credential: 'openrelayproject'
+      },
+      {
+        urls: 'turn:openrelay.metered.ca:443?transport=tcp',
+        username: 'openrelayproject',
+        credential: 'openrelayproject'
+      }
+    ],
+    iceCandidatePoolSize: 10
+  }
+};
 
 /* ================== HELPERS ================== */
 const $ = id => document.getElementById(id);
