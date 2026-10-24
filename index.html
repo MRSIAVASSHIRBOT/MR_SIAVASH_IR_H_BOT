@@ -4,9 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#3d5afe">
-<meta name="description" content="✨ت بازی — ✨ت و ۱۴ بازی دونفره، بدون ثبت‌نام — MR_SIAVASH_IR_BOT">
+<meta name="description" content="چت بازی — ✨ت و ۱۴ بازی دونفره، بدون ثبت‌نام — MR_SIAVASH_IR_BOT">
 <meta name="author" content="MR_SIAVASH_IR_BOT">
-<title>✨ت بازی — MR_SIAVASH_IR_BOT</title>
+<title>چت بازی — MR_SIAVASH_IR_BOT</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%233d5afe'/><stop offset='1' stop-color='%23ff4d8d'/></linearGradient></defs><rect width='100' height='100' rx='22' fill='url(%23g)'/><text x='50' y='50' font-size='60' text-anchor='middle' dominant-baseline='central' font-family='sans-serif' font-weight='900' fill='%23fff'>S</text></svg>">
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet">
@@ -372,7 +372,7 @@ input,textarea{font:inherit;color:inherit;}
 
   <section class="landing" id="landing">
     <div class="tiles"><span style="background:#3d5afe">X</span><span style="background:#ff4d8d">O</span><span style="background:#12b886">✊</span><span style="background:#ff922b">🎨</span></div>
-    <h1>✨ت بازی</h1>
+    <h1>چت بازی </h1>
     <p> خیلی خوش آمدید ، این بازی توسط ✨ « MR_SIAVASH_IR_BOT » طراحی شده تا شما با دوستانتان راحت وقت بگذرونید و خاطرات خوش بسازید ✨ </p>
     <div class="invited" id="invited"></div>
     <div class="field"><label for="inName">اسم تو</label><input id="inName" maxlength="14" autocomplete="off" placeholder="مثلاً سیاوش"></div>
@@ -460,7 +460,7 @@ input,textarea{font:inherit;color:inherit;}
           <span class="ico sr">💬</span><span class="info2"><b>سروش پلاس</b><small>@MR_SIAVASH_EL_IR_BOT</small></span><span class="arrow">↗</span>
         </a>
       </div>
-      <button class="support-btn" id="btnShareApp">📤 اشتراک‌گذاری ✨ت بازی</button>
+      <button class="support-btn" id="btnShareApp">📤 اشتراک‌گذاری چت بازی </button>
       <button class="leave-btn" id="btnLeaveRoom" style="display:none">🚪 خروج از اتاق</button>
       <div class="sig-footer" style="border-top:none;margin-top:4px;padding-top:4px"><span class="sig-mark">✨</span><span>ساخته شده با ❤️ توسط <b>MR_SIAVASH_IR_BOT</b></span></div>
       <button class="link" id="btnCloseSupport">بستن</button>
@@ -1813,7 +1813,7 @@ $('btnMenuFeedback').onclick = ()=>{ $('menuSheet').classList.remove('on'); open
 
 $('btnShareApp').onclick = ()=>{
   const url = location.href.split('#')[0];
-  if (navigator.share){ navigator.share({ title:'✨ت بازی', text:'✨ت + ۱۴ بازی — MR_SIAVASH_IR_BOT', url }).catch(()=>{}); }
+  if (navigator.share){ navigator.share({ title:'چت بازی ', text:'✨ت + ۱۴ بازی — MR_SIAVASH_IR_BOT', url }).catch(()=>{}); }
   else { navigator.clipboard.writeText(url).then(()=>toast('کپی شد ✅')).catch(()=>toast('کپی نشد')); }
 };
 
@@ -1979,7 +1979,7 @@ $('btnCopy').onclick = async () => {
   try { await navigator.clipboard.writeText(text); toast('لینک کپی شد ✅'); }
   catch(e){ const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); toast('کپی شد'); } catch(x){ toast('کپی نشد'); } ta.remove(); }
 };
-$('btnShare').onclick = ()=>{ try { navigator.share({ title:'✨ت بازی', text:'بیا ✨ت و بازی! کد: '+code, url: inviteLink() }); } catch(e){} };
+$('btnShare').onclick = ()=>{ try { navigator.share({ title:'چت بازی ', text:'بیا ✨ت و بازی! کد: '+code, url: inviteLink() }); } catch(e){} };
 $('btnSpectator').onclick = ()=>{
   const url = location.href.split('#')[0] + '#spec-' + code;
   navigator.clipboard.writeText(url).then(()=>toast('لینک تماشا✨ی کپی شد 👁️')).catch(()=>toast('کپی نشد'));
@@ -2477,7 +2477,7 @@ gb.addEventListener('submit', e => {
 
 /* ================== PWA ================== */
 try {
-  const mf = { name:'✨ت بازی', short_name:'✨ت بازی', description:'MR_SIAVASH_IR_BOT', start_url:'.', display:'standalone', background_color:'#eef1fb', theme_color:'#3d5afe', lang:'fa', dir:'rtl', icons:[{ src:"data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%233d5afe'/><text x='50' y='50' font-size='60' text-anchor='middle' dominant-baseline='central' font-family='sans-serif' font-weight='900' fill='%23fff'>✨</text></svg>", sizes:'any', type:'image/svg+xml', purpose:'any maskable' }] };
+  const mf = { name:'چت بازی ', short_name:'چت بازی ', description:'MR_SIAVASH_IR_BOT', start_url:'.', display:'standalone', background_color:'#eef1fb', theme_color:'#3d5afe', lang:'fa', dir:'rtl', icons:[{ src:"data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%233d5afe'/><text x='50' y='50' font-size='60' text-anchor='middle' dominant-baseline='central' font-family='sans-serif' font-weight='900' fill='%23fff'>✨</text></svg>", sizes:'any', type:'image/svg+xml', purpose:'any maskable' }] };
   const blob = new Blob([JSON.stringify(mf)], { type:'application/json' });
   const link = document.createElement('link'); link.rel='manifest'; link.href = URL.createObjectURL(blob);
   document.head.appendChild(link);
@@ -2506,7 +2506,7 @@ $('msgs').addEventListener('touchend', e => {
 /* ================== INIT ================== */
 applySettings();
 trackEvent('app_open');
-console.log('%c✨ت بازی — MR_SIAVASH_IR_BOT','font-size:16px;font-weight:900;background:linear-gradient(90deg,#3d5afe,#ff4d8d);-webkit-background-clip:text;color:transparent;padding:4px');
+console.log('%cچت بازی — MR_SIAVASH_IR_BOT','font-size:16px;font-weight:900;background:linear-gradient(90deg,#3d5afe,#ff4d8d);-webkit-background-clip:text;color:transparent;padding:4px');
 
 })();
 </script>
