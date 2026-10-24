@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#3d5afe">
-<meta name="description" content="چت بازی — ✨ت و ۱۴ بازی دونفره، بدون ثبت‌نام — MR_SIAVASH_IR_BOT">
+<meta name="description" content="چت بازی — چت و ۱۴ بازی دونفره، بدون ثبت‌نام — MR_SIAVASH_IR_BOT">
 <meta name="author" content="MR_SIAVASH_IR_BOT">
 <title>چت بازی — MR_SIAVASH_IR_BOT</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%233d5afe'/><stop offset='1' stop-color='%23ff4d8d'/></linearGradient></defs><rect width='100' height='100' rx='22' fill='url(%23g)'/><text x='50' y='50' font-size='60' text-anchor='middle' dominant-baseline='central' font-family='sans-serif' font-weight='900' fill='%23fff'>S</text></svg>">
@@ -476,7 +476,7 @@ input,textarea{font:inherit;color:inherit;}
       <div class="field"><label>آواتار</label><div class="avatar-grid" id="avatarGrid"></div></div>
       <div class="field"><label>رنگ اسم</label><div class="color-grid" id="nameColorGrid"></div></div>
       <button class="btn-main alt" id="btnStats">📊 آمار و نشان‌ها</button>
-      <button class="btn-main alt" id="btnExportChat">📥 خروجی ✨ت</button>
+      <button class="btn-main alt" id="btnExportChat">📥 خروجی چت</button>
       <div class="sig-footer"><span class="sig-mark">✨</span><span><b>MR_SIAVASH_IR_BOT</b></span></div>
       <button class="link" id="btnCloseTheme">بستن</button>
     </div>
@@ -520,7 +520,7 @@ input,textarea{font:inherit;color:inherit;}
       <button class="support-btn" id="btnMenuTheme">🎨 ظاهر و تنظیمات</button>
       <button class="support-btn" id="btnMenuStats">📊 آمار من</button>
       <button class="support-btn" id="btnMenuSearch">🔍 جستجو</button>
-      <button class="support-btn" id="btnMenuExport">📥 خروجی ✨ت</button>
+      <button class="support-btn" id="btnMenuExport">📥 خروجی چت</button>
       <button class="support-btn" id="btnMenuFeedback">💬 پشتیبانی</button>
       <div class="sig-footer"><span class="sig-mark">✨</span><span><b>MR_SIAVASH_IR_BOT</b></span></div>
       <button class="link" id="btnCloseMenu">بستن</button>
@@ -704,7 +704,7 @@ const QZ = [
   ['گاز تنفس؟','اکسیژن','نیتروژن','هیدروژن','هلیوم'],
   ['تخت جمشید در استان؟','فارس','خوزستان','اصفهان','یزد'],
 ];
-const WORDS = ['خانه','ماشین','درخت','گربه','ماهی','خورشید','گل','هواپیما','موز','کتاب','عینک','موشک','پروانه','دو✨رخه','ساعت','کلاه','قلب','ستاره','ماه','کوه','قایق','✨تر','پیتزا','سیب','کفش','تلفن','گیتار','کلید','مار','فیل','بستنی','برف','تاج','جارو','لامپ','پل','قلعه','ربات','دایناسور','بادکنک','کیک','مداد','پنجره','میز','صندلی','فرش','✨ای','نان','پنیر','هندوانه','آناناس','طوطی','زرافه','کبوتر','گاو','اسب','مور✨ه','زنبور','لاک‌پشت'];
+const WORDS = ['خانه','ماشین','درخت','گربه','ماهی','خورشید','گل','هواپیما','موز','کتاب','عینک','موشک','پروانه','دو✨رخه','ساعت','کلاه','قلب','ستاره','ماه','کوه','قایق','چتر','پیتزا','سیب','کفش','تلفن','گیتار','کلید','مار','فیل','بستنی','برف','تاج','جارو','لامپ','پل','قلعه','ربات','دایناسور','بادکنک','کیک','مداد','پنجره','میز','صندلی','فرش','✨ای','نان','پنیر','هندوانه','آناناس','طوطی','زرافه','کبوتر','گاو','اسب','مور✨ه','زنبور','لاک‌پشت'];
 const TRUTH = ['آخرین دروغی که گفتی؟','بامزه‌ترین خاطرهٔ مدرسه؟','اگه نامرئی بودی ✨یکار می‌کردی؟','ترسناک‌ترین ✨یزی که دیدی؟','عجیب‌ترین غذایی که خوردی؟','یه عادت عجیب؟','اگه فقط یه اپ می‌موند؟','بزرگ‌ترین آرزوت؟','✨ه کاری رو عقب می‌ندازی؟','خجالت‌آورترین لحظه؟','اگه میلیاردر می‌شدی اول ✨ی می‌خریدی؟','سریالی که بیشتر دیدی؟','استعداد پنهون؟','با کی شام می‌خوردی؟'];
 const DARE = ['جملهٔ ۱۰ کلمه‌ای با «ب»','یه لقب بامزه برای یکی بنویس','یه دقیقه فقط ایموجی','یه جوک بگو','یه بیت شعر','۱۰ میوه در ۱۰ ثانیه','۳ واقعیت جالب','داستان ۳ جمله‌ای گربهٔ فضانورد','جملهٔ انگیزشی','یه ایموجی و حدس بقیه','اسم آهنگ و خواننده','یه ✨یز خوب دربارهٔ هرکی'];
 const WYR = [
@@ -733,7 +733,7 @@ const EMOJI_DATA = [
   { q: '🍎📱', a: 'اپل' },
   { q: '☀️🌻', a: 'آفتابگردان' },
   { q: '🥚🍳', a: 'املت' },
-  { q: '🌧️☂️', a: '✨تر' },
+  { q: '🌧️☂️', a: 'چتر' },
   { q: '🐢🐇', a: 'لاک‌پشت و خرگوش' },
   { q: '🦅🗽', a: 'عقاب' },
   { q: '🐺🌕', a: 'گرگ' },
@@ -1813,7 +1813,7 @@ $('btnMenuFeedback').onclick = ()=>{ $('menuSheet').classList.remove('on'); open
 
 $('btnShareApp').onclick = ()=>{
   const url = location.href.split('#')[0];
-  if (navigator.share){ navigator.share({ title:'چت بازی ', text:'✨ت + ۱۴ بازی — MR_SIAVASH_IR_BOT', url }).catch(()=>{}); }
+  if (navigator.share){ navigator.share({ title:'چت بازی ', text:'چت + ۱۴ بازی — MR_SIAVASH_IR_BOT', url }).catch(()=>{}); }
   else { navigator.clipboard.writeText(url).then(()=>toast('کپی شد ✅')).catch(()=>toast('کپی نشد')); }
 };
 
@@ -1979,7 +1979,7 @@ $('btnCopy').onclick = async () => {
   try { await navigator.clipboard.writeText(text); toast('لینک کپی شد ✅'); }
   catch(e){ const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); toast('کپی شد'); } catch(x){ toast('کپی نشد'); } ta.remove(); }
 };
-$('btnShare').onclick = ()=>{ try { navigator.share({ title:'چت بازی ', text:'بیا ✨ت و بازی! کد: '+code, url: inviteLink() }); } catch(e){} };
+$('btnShare').onclick = ()=>{ try { navigator.share({ title:'چت بازی ', text:'بیا چت و بازی! کد: '+code, url: inviteLink() }); } catch(e){} };
 $('btnSpectator').onclick = ()=>{
   const url = location.href.split('#')[0] + '#spec-' + code;
   navigator.clipboard.writeText(url).then(()=>toast('لینک تماشا✨ی کپی شد 👁️')).catch(()=>toast('کپی نشد'));
